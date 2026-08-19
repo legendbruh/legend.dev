@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Legend Mendonca</title>
-<meta name="description" content="Legend Mendonca. Bedrock breaker, living, Mod Developer, experimentalist. Nothing is more uncertain than certainty.">
+<meta name="description" content="Legend Mendonca. Unknown, living, human, experimentalist. Nothing is more uncertain than certainty.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,6 +50,44 @@ body{
   font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
+}
+
+html.large-text{ zoom:1.15; }
+
+.text-size-toggle{ display:none; }
+
+@media (max-width: 860px){
+  .text-size-toggle{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:auto;
+    padding-top:26px;
+    border:none;
+    border-top:1px solid var(--line);
+    background:none;
+    color:var(--text-secondary);
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    cursor:pointer;
+    width:100%;
+  }
+  .text-size-toggle:hover, .text-size-toggle[aria-pressed="true"]{ color:var(--accent); }
+  .text-size-toggle .ts-icon{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:15px;
+    line-height:1;
+    border:1px solid var(--line-strong);
+    padding:5px 9px;
+    color:var(--text-primary);
+  }
+  .text-size-toggle[aria-pressed="true"] .ts-icon{
+    border-color:var(--accent-soft);
+    color:var(--accent);
+  }
 }
 
 ::selection{ background:var(--accent-dim); color:var(--accent); }
@@ -294,22 +332,92 @@ section{
   z-index:-1;
 }
 
+.nav-toggle{ display:none; }
+.nav-backdrop{ display:none; }
+
 @media (max-width: 860px){
   :root{ --nav-w: 0px; }
-  .nav-instrument{
-    width:100%;
-    height:auto;
-    top:auto;
-    bottom:0;
-    flex-direction:row;
-    justify-content:space-around;
-    padding:12px 0;
-    border-right:none;
-    border-top:1px solid var(--line);
+
+  .nav-toggle{
+    display:flex;
+    position:fixed;
+    top:18px; left:18px;
+    z-index:50;
+    width:42px; height:42px;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:5px;
+    background:rgba(8,10,18,0.6);
+    border:1px solid var(--line-strong);
+    backdrop-filter:blur(6px);
+    cursor:pointer;
   }
-  .nav-mark{ display:none; }
-  .nav-list{ flex-direction:row; gap:0; width:100%; justify-content:space-around; }
-  .nav-link .label{ display:none; }
+  .nav-toggle span{
+    display:block;
+    width:18px; height:1px;
+    background:var(--text-primary);
+    transition:transform .3s var(--ease), opacity .3s var(--ease);
+  }
+  .nav-toggle[aria-expanded="true"] span:nth-child(1){ transform:translateY(6px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .nav-toggle[aria-expanded="true"] span:nth-child(3){ transform:translateY(-6px) rotate(-45deg); }
+
+  .nav-backdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    z-index:44;
+    background:rgba(3,4,8,0.6);
+    backdrop-filter:blur(2px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .35s var(--ease);
+  }
+  .nav-backdrop.open{ opacity:1; pointer-events:auto; }
+
+  .nav-instrument{
+    width:min(280px, 78vw);
+    height:100%;
+    top:0; left:0;
+    align-items:flex-start;
+    justify-content:flex-start;
+    padding:100px 28px 40px 28px;
+    border-right:1px solid var(--line-strong);
+    background:rgba(5,6,10,0.97);
+    backdrop-filter:blur(10px);
+    transform:translateX(-100%);
+    transition:transform .4s var(--ease);
+    z-index:45;
+  }
+  .nav-instrument.open{ transform:translateX(0); }
+
+  .nav-mark{
+    position:static;
+    writing-mode:horizontal-tb;
+    transform:none;
+    margin-bottom:40px;
+  }
+
+  .nav-list{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:26px;
+    width:100%;
+  }
+  .nav-link{ flex-direction:row; align-items:center; gap:14px; width:100%; padding:8px 0; }
+  .nav-link .label{
+    position:static;
+    opacity:1;
+    transform:none;
+    background:none;
+    border:none;
+    padding:0;
+    pointer-events:auto;
+    font-size:13px;
+    color:var(--text-secondary);
+  }
+  .nav-item.active .label{ color:var(--accent); }
   .nav-instrument .rail{ display:none; }
 }
 
@@ -541,6 +649,46 @@ section{
   max-height:120px;
   color:var(--text-secondary);
 }
+
+.node.has-subtopics{ grid-column: 1 / -1; }
+.node.has-subtopics[aria-expanded="true"] .desc{ max-height:440px; }
+.node.has-subtopics .desc p{ margin:0 0 14px 0; font-size:12.5px; line-height:1.6; }
+
+.node-toggle{
+  all:unset;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  cursor:pointer;
+}
+.node-toggle .title{ margin:0; }
+.node-toggle:hover ~ .desc,
+.node.has-subtopics:hover .dot{
+  background:var(--accent);
+  box-shadow:0 0 8px var(--accent-glow);
+}
+
+.sub-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.sub-link{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:0.03em;
+  color:var(--text-secondary);
+  text-decoration:none;
+  border:1px solid var(--line-strong);
+  padding:6px 10px;
+  transition:color .25s var(--ease), border-color .25s var(--ease);
+}
+.sub-link:hover, .sub-link:focus-visible{
+  color:var(--accent);
+  border-color:var(--accent-soft);
+}
+.sub-link-pending{ opacity:0.4; cursor:default; }
 
 /* ============================================================
    PROJECTS / EXPERIMENTS - archive records
@@ -812,15 +960,20 @@ section{
      UTILITY BAR
      ============================================================ -->
 <div class="utility-bar">
-  <button class="util-btn" id="sound-toggle" type="button" aria-pressed="false">
-    <span class="dot" aria-hidden="true"></span><span id="sound-label">Sound: Off</span>
+  <button class="util-btn" id="sound-toggle" type="button" aria-pressed="true">
+    <span class="dot" aria-hidden="true"></span><span id="sound-label">Sound: On</span>
   </button>
 </div>
 
 <!-- ============================================================
      NAVIGATION
      ============================================================ -->
-<nav class="nav-instrument" aria-label="Section navigation">
+<button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-instrument" aria-label="Toggle navigation menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="nav-backdrop" id="nav-backdrop"></div>
+
+<nav class="nav-instrument" id="nav-instrument" aria-label="Section navigation">
   <span class="nav-mark">LM // SIGNAL</span>
   <div class="rail" aria-hidden="true"></div>
   <ul class="nav-list">
@@ -843,6 +996,9 @@ section{
       <a class="nav-link" href="#contact"><span class="idx">05</span><span class="node"></span><span class="label">Contact</span></a>
     </li>
   </ul>
+  <button class="text-size-toggle" id="text-size-toggle" type="button" aria-pressed="false">
+    <span class="ts-icon" aria-hidden="true">Aa</span> Larger Text
+  </button>
 </nav>
 
 <main id="main" class="site">
@@ -857,7 +1013,7 @@ section{
     </div>
 
     <h1 class="hero-name" id="hero-name">LEGEND <span class="last">MENDONCA</span></h1>
-    <p class="hero-tags" id="hero-tags">UNKNOWN<span>//</span>LIVING<span>//</span>HUMAN<span>//</span>EXPERIMENTALIST</p>
+    <p class="hero-tags" id="hero-tags">PROGRAMMER<span>//</span>HUMAN<span>//</span>EXPERIMENTALIST</p>
 
     <p class="hero-quote" id="hero-quote">
       <span class="line">Nothing is more uncertain</span>
@@ -879,9 +1035,9 @@ section{
 
     <div class="about-grid">
       <div class="about-text reveal">
-        <p>Legend is a <strong>student</strong>, a <strong>developer</strong>, and a <strong>builder</strong> who spends most of his time taking things apart to understand how they work, then putting them back together differently.</p>
-        <p>The work moves across code, hardware, and half-finished machines. Some of it ships. Most of it is just the residue of asking <strong>what happens if</strong> and following the answer wherever it leads.</p>
-        <p>There is no fixed discipline here. Just an ongoing habit of learning by building, and an interest in the point where different fields start to overlap.</p>
+        <p>Legend is a <strong>student</strong>, a <strong>developer</strong>, and a <strong>builder</strong> who spends most of his time taking things apart or building stuff to understand how they work, then putting them back together differently.</p>
+        <p>The work moves across code, hardware, and half-finished machines too! Some of it ships. Most of it is the residue of asking <strong>what happens if</strong>, and following the answer wherever it leads.</p>
+        <p>There is no fixed discipline here, just an ongoing habit of learning by building, and an interest in the point where different fields start to overlap.</p>
         <div class="about-roles">
           <span class="role-chip">Student</span>
           <span class="role-chip">Developer</span>
@@ -898,6 +1054,8 @@ section{
         <p class="v">Build first, understand along the way</p>
         <span class="k">Operating Principle</span>
         <p class="v">Nothing is more uncertain than certainty</p>
+        <span class="k">Also Known As</span>
+        <p class="v"><a class="contact-link" href="https://www.curseforge.com/members/crusaderly/projects" target="_blank" rel="noopener noreferrer">Crusaderly on CurseForge</a></p>
       </div>
     </div>
   </section>
@@ -921,7 +1079,7 @@ section{
   <section id="projects">
     <div class="eyebrow reveal">03 / Archive</div>
     <h2 class="section-title reveal">Things that got built.</h2>
-    <p class="section-lede reveal">A working record of shipped and maintained projects. New entries get added as they exist, not before.</p>
+    <p class="section-lede reveal">A working record of Minecraft Bedrock projects, built and maintained under the alias Crusaderly. New entries get added as they exist, not before.</p>
 
     <div class="archive reveal" id="projects-archive">
       <!-- Records injected by JS from PROJECTS data -->
@@ -952,7 +1110,7 @@ section{
       <p class="contact-lead">Questions, collaborations, or just curious about something above. Open channel below.</p>
       <div class="contact-actions">
         <!-- Replace with a real address before publishing -->
-        <a class="contact-link" href="mailto:hello@example.com">hello@example.com</a>
+        <a class="contact-link" href="mailto:legendvenmendonca@gmail.com">legendvenmendonca@gmail.com</a>
         <!-- Add real profile links here as needed -->
         <a class="contact-link" href="#projects">View the archive</a>
       </div>
@@ -1002,11 +1160,11 @@ var HOBBIES = [
   { title:"Electrical Engineering", desc:"Circuits, signals, and the physical side of logic." },
   { title:"Mechatronics", desc:"Where mechanical parts and code have to agree." },
   { title:"Game Development", desc:"Building small interactive worlds from scratch." },
-  { title:"Minecraft Bedrock Addons", desc:"Modding a familiar world into something new." },
+  { title:"Minecraft Bedrock Addons", desc:"Modding a familiar world into something new. Scripting, custom mechanics, automation, and gameplay systems, built to push Bedrock past its vanilla limits." },
   { title:"Electronics", desc:"Breadboards, components, and things that spark." },
   { title:"AI", desc:"Models, behavior, and the edges of what they can do." },
   { title:"Art", desc:"Visual thinking, used as a break from logical thinking." },
-  { title:"Modding", desc:"Changing systems that Needed My personalisation" },
+  { title:"Modding", desc:"Changing systems that were not built to be changed." },
   { title:"Experimental Projects", desc:"Anything without a clear category yet." }
 ];
 
@@ -1016,17 +1174,73 @@ var PROJECTS = [
     id:"P-001",
     status:"ACTIVE",
     name:"CrusadersBedrock",
-    desc:"A Minecraft Bedrock addon project. Ongoing modding and development work built for the Bedrock platform.",
-    tags:["Minecraft Bedrock","Addon Development","Modding"],
-    url:"https://legendbruh.github.io/legend.dev/#about"
+    desc:"The main Bedrock project. Expands survival gameplay with a five season system, grappling hooks, custom redstone blocks, a soul chest death protection system, custom pets, a flying drone, and a full Script API driven gameplay layer, while staying close to Minecraft's core feel.",
+    tags:["Survival+","Vanilla+","Multiplayer","Script API"],
+    url:"https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrock"
+  },
+  {
+    id:"P-002",
+    status:"ACTIVE",
+    name:"Dimensional Doors!",
+    desc:"A custom Skyblock dimension addon. A Trial Key and a wooden door open a portal into a self contained progression space with resource islands, ore islands, and a copper door return system.",
+    tags:["Custom Dimensions","Skyblock","Survival","Multiplayer"],
+    url:"https://www.curseforge.com/minecraft-bedrock/addons/dimensional-doors"
+  },
+  {
+    id:"P-003",
+    status:"ACTIVE",
+    name:"PvP Manhunt Bot (MCPE)",
+    desc:"An experimental AI hunter that travels across dimensions, navigates and recalculates its path around obstacles, and fights using its own combat logic. A study in autonomous, emergent Bedrock behavior.",
+    tags:["AI","Pathfinding","Combat","Automation"],
+    url:"https://www.curseforge.com/minecraft-bedrock/addons/pvp-manhunt-bot-mcpe"
+  },
+  {
+    id:"P-004",
+    status:"ACTIVE",
+    name:"CrusadersBedrockLite",
+    desc:"A lighter version of the Crusader gameplay concept. Keeps the five season system, grappling hooks, and casino style systems, without the full feature set of the main project.",
+    tags:["Lightweight","Survival+","Script API","Multiplayer"],
+    url:"https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrocklite"
+  },
+  {
+    id:"P-005",
+    status:"ACTIVE",
+    name:"Custom Potions Maker",
+    desc:"Lets players build fully customizable potions, combining effects, amplifiers, and durations through a Script UI system, for brews built around combat, mining, exploration, or parkour.",
+    tags:["Custom Brewing","Script API","Script UI"],
+    url:"https://www.curseforge.com/minecraft-bedrock/addons/crusaderscustompotions"
+  },
+  {
+    id:"P-006",
+    status:"ACTIVE",
+    name:"Crusaders Reduced Particle Effect",
+    desc:"A resource pack that replaces large vanilla spell particles with smaller sparkler style ones. Animated and colour fading, built for cleaner visibility in PvP and survival.",
+    tags:["Resource Pack","Visual Optimization","PvP"],
+    url:"https://www.curseforge.com/minecraft-bedrock/texture-packs/crusadersreducedeffect-sparkler-style-spells"
+  },
+  {
+    id:"P-007",
+    status:"IN PROGRESS",
+    name:"Crusaders Toolbox",
+    desc:"A scripting utility for procedural shapes and mass entity manipulation. Summons and arranges entities into spheres, cubes, and torus formations for building complex structures through code.",
+    tags:["Procedural Generation","Entity Scripting","Utility"],
+    url:""
   }
 ];
+
+/* The mod development hobby node surfaces the same records as quick links. */
+(function attachModSubtopics(){
+  var modHobby = HOBBIES.filter(function(h){ return h.title === "Minecraft Bedrock Addons"; })[0];
+  if (modHobby){
+    modHobby.subtopics = PROJECTS.map(function(p){ return { name:p.name, url:p.url }; });
+  }
+})();
 
 /* Empty by default. Add entries in the same shape as PROJECTS above. */
 var EXPERIMENTS = [];
 
-/* Replace with a real address before publishing this site. */
-var CONTACT_EMAIL = "hello@example.com";
+/* Contact email */
+var CONTACT_EMAIL = "legendvenmendonca@gmail.com";
 
 var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -1035,23 +1249,53 @@ var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
    ============================================================ */
 function renderHobbies(){
   var wrap = document.getElementById("constellation");
-  HOBBIES.forEach(function(h, i){
-    var btn = document.createElement("button");
-    btn.className = "node";
-    btn.type = "button";
-    btn.setAttribute("role","listitem");
-    btn.setAttribute("aria-expanded","false");
-    btn.innerHTML =
-      '<span class="dot" aria-hidden="true"></span>' +
-      '<span class="title">' + h.title + '</span>' +
-      '<span class="desc">' + h.desc + '</span>';
-    btn.addEventListener("click", function(){
-      var isOpen = btn.getAttribute("aria-expanded") === "true";
-      btn.setAttribute("aria-expanded", isOpen ? "false" : "true");
-      playTone(isOpen ? 320 : 480, 0.05);
-    });
-    btn.addEventListener("mouseenter", function(){ playTone(600, 0.02, 0.02); });
-    wrap.appendChild(btn);
+  HOBBIES.forEach(function(h){
+    var hasSub = !!(h.subtopics && h.subtopics.length);
+    var el = document.createElement(hasSub ? "div" : "button");
+    el.className = "node" + (hasSub ? " has-subtopics" : "");
+    if (!hasSub) el.type = "button";
+    el.setAttribute("role","listitem");
+    el.setAttribute("aria-expanded","false");
+
+    if (hasSub){
+      var subHTML = h.subtopics.map(function(s){
+        return s.url
+          ? '<a class="sub-link" href="' + s.url + '" target="_blank" rel="noopener noreferrer">' + s.name + '</a>'
+          : '<span class="sub-link sub-link-pending">' + s.name + '</span>';
+      }).join('');
+
+      el.innerHTML =
+        '<button class="node-toggle" type="button" aria-expanded="false">' +
+          '<span class="dot" aria-hidden="true"></span>' +
+          '<span class="title">' + h.title + '</span>' +
+        '</button>' +
+        '<div class="desc">' +
+          '<p>' + h.desc + '</p>' +
+          '<div class="sub-list">' + subHTML + '</div>' +
+        '</div>';
+
+      var toggleBtn = el.querySelector(".node-toggle");
+      toggleBtn.addEventListener("click", function(){
+        var isOpen = el.getAttribute("aria-expanded") === "true";
+        el.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        toggleBtn.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        playTone(isOpen ? 320 : 480, 0.05);
+      });
+      toggleBtn.addEventListener("mouseenter", function(){ playTone(600, 0.03, 0.09); });
+    } else {
+      el.innerHTML =
+        '<span class="dot" aria-hidden="true"></span>' +
+        '<span class="title">' + h.title + '</span>' +
+        '<span class="desc">' + h.desc + '</span>';
+      el.addEventListener("click", function(){
+        var isOpen = el.getAttribute("aria-expanded") === "true";
+        el.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        playTone(isOpen ? 320 : 480, 0.05);
+      });
+      el.addEventListener("mouseenter", function(){ playTone(600, 0.03, 0.09); });
+    }
+
+    wrap.appendChild(el);
   });
 }
 
@@ -1094,7 +1338,7 @@ document.querySelectorAll('.contact-link[href^="mailto:"]').forEach(function(el)
 /* ============================================================
    SOUND SYSTEM (synthesized, no external audio files)
    ============================================================ */
-var soundEnabled = false;
+var soundEnabled = true;
 var audioCtx = null;
 
 function ensureAudioCtx(){
@@ -1114,7 +1358,7 @@ function playTone(freq, duration, volume){
   var gain = ctx.createGain();
   osc.type = "sine";
   osc.frequency.value = freq;
-  gain.gain.value = volume || 0.04;
+  gain.gain.value = volume || 0.22;
   gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (duration || 0.08));
   osc.connect(gain).connect(ctx.destination);
   osc.start();
@@ -1129,7 +1373,7 @@ soundToggle.addEventListener("click", function(){
   soundLabel.textContent = "Sound: " + (soundEnabled ? "On" : "Off");
   if (soundEnabled){
     ensureAudioCtx();
-    playTone(520, 0.09, 0.05);
+    playTone(520, 0.09, 0.24);
   }
 });
 
@@ -1142,7 +1386,41 @@ var sections = navItems.map(function(item){
 });
 
 document.querySelectorAll(".nav-link").forEach(function(link){
-  link.addEventListener("click", function(){ playTone(440, 0.06, 0.03); });
+  link.addEventListener("click", function(){ playTone(440, 0.06, 0.16); });
+});
+
+/* Mobile sidebar */
+var navToggle = document.getElementById("nav-toggle");
+var navInstrument = document.getElementById("nav-instrument");
+var navBackdrop = document.getElementById("nav-backdrop");
+
+function openNav(){
+  navInstrument.classList.add("open");
+  navBackdrop.classList.add("open");
+  navToggle.setAttribute("aria-expanded","true");
+}
+function closeNav(){
+  navInstrument.classList.remove("open");
+  navBackdrop.classList.remove("open");
+  navToggle.setAttribute("aria-expanded","false");
+}
+navToggle.addEventListener("click", function(){
+  if (navInstrument.classList.contains("open")) closeNav(); else openNav();
+});
+navBackdrop.addEventListener("click", closeNav);
+document.querySelectorAll(".nav-link").forEach(function(link){
+  link.addEventListener("click", closeNav);
+});
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape" && navInstrument.classList.contains("open")) closeNav();
+});
+
+/* Text size resize toggle (mobile sidebar) */
+var textSizeToggle = document.getElementById("text-size-toggle");
+textSizeToggle.addEventListener("click", function(){
+  var isLarge = document.documentElement.classList.toggle("large-text");
+  textSizeToggle.setAttribute("aria-pressed", String(isLarge));
+  playTone(isLarge ? 560 : 380, 0.05, 0.16);
 });
 
 function updateActiveNav(){
@@ -1410,7 +1688,7 @@ var Artifact = (function(){
     });
     canvas.addEventListener("mouseenter", function(){
       hovered = true;
-      playTone(700, 0.04, 0.02);
+      playTone(700, 0.04, 0.12);
     });
     canvas.addEventListener("mouseleave", function(){
       hovered = false;
@@ -1418,14 +1696,14 @@ var Artifact = (function(){
     });
     canvas.addEventListener("click", function(){
       emitBurst();
-      playTone(880, 0.12, 0.05);
+      playTone(880, 0.12, 0.26);
       if (!prefersReducedMotion && typeof gsap !== "undefined"){
         gsap.to(group.scale, { x:1.12, y:1.12, z:1.12, duration:0.18, yoyo:true, repeat:1, ease:"power2.out" });
       }
     });
     canvas.addEventListener("touchstart", function(){
       emitBurst();
-      playTone(880, 0.12, 0.05);
+      playTone(880, 0.12, 0.26);
     }, { passive:true });
   }
 
@@ -1529,8 +1807,8 @@ function openOverride(){
   overlay.classList.add("active");
   overlay.setAttribute("aria-hidden","false");
   archiveClose.focus();
-  playTone(180, 0.3, 0.06);
-  setTimeout(function(){ playTone(950, 0.2, 0.05); }, 180);
+  playTone(180, 0.3, 0.28);
+  setTimeout(function(){ playTone(950, 0.2, 0.24); }, 180);
   document.body.style.overflow = "hidden";
 }
 
