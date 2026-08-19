@@ -29,6 +29,9 @@
   --accent-dim: rgba(216,184,114,0.14);
   --accent-glow: rgba(216,184,114,0.35);
 
+  --hint-border: rgba(198,214,255,0.4);
+  --hint-border-strong: rgba(198,214,255,0.8);
+
   --font-display:'Space Grotesk', sans-serif;
   --font-body:'Inter', sans-serif;
   --font-mono:'IBM Plex Mono', monospace;
@@ -80,7 +83,7 @@ html.large-text{ zoom:1.15; }
     font-weight:700;
     font-size:15px;
     line-height:1;
-    border:1px solid var(--line-strong);
+    border:1px solid var(--hint-border);
     padding:5px 9px;
     color:var(--text-primary);
   }
@@ -88,6 +91,39 @@ html.large-text{ zoom:1.15; }
     border-color:var(--accent-soft);
     color:var(--accent);
   }
+}
+
+.stagger-item{
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .55s var(--ease), transform .55s var(--ease);
+}
+.stagger-item.stagger-in{ opacity:1; transform:none; }
+@media (prefers-reduced-motion: reduce){
+  .stagger-item{ opacity:1; transform:none; transition:none; }
+}
+
+.tap-hint{ position:relative; }
+.tap-hint::after{
+  content:'[tap me]';
+  position:absolute;
+  top:-9px;
+  right:10px;
+  font-family:var(--font-mono);
+  font-size:8.5px;
+  letter-spacing:0.08em;
+  text-transform:lowercase;
+  color:#c6d6ff;
+  opacity:0.5;
+  pointer-events:none;
+  animation:tap-pulse 2.6s ease-in-out infinite;
+}
+@keyframes tap-pulse{
+  0%,100%{ opacity:0.22; transform:translateY(0); }
+  50%{ opacity:0.75; transform:translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce){
+  .tap-hint::after{ animation:none; opacity:0.45; }
 }
 
 ::selection{ background:var(--accent-dim); color:var(--accent); }
@@ -208,7 +244,7 @@ section{
   letter-spacing:0.14em;
   text-transform:uppercase;
   background:rgba(8,10,18,0.5);
-  border:1px solid var(--line);
+  border:1px solid var(--hint-border);
   color:var(--text-secondary);
   padding:8px 12px;
   cursor:pointer;
@@ -349,7 +385,7 @@ section{
     flex-direction:column;
     gap:5px;
     background:rgba(8,10,18,0.6);
-    border:1px solid var(--line-strong);
+    border:1px solid var(--hint-border-strong);
     backdrop-filter:blur(6px);
     cursor:pointer;
   }
@@ -440,6 +476,14 @@ section{
   height:min(560px, 62vh);
   position:relative;
   margin-bottom:8px;
+  animation:float-y 6.5s ease-in-out infinite;
+}
+@keyframes float-y{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-14px); }
+}
+@media (prefers-reduced-motion: reduce){
+  .hero-canvas-wrap{ animation:none; }
 }
 #artifact-canvas{
   width:100%; height:100%; display:block;
@@ -603,7 +647,7 @@ section{
 
 .node{
   position:relative;
-  border:1px solid var(--line);
+  border:1px solid var(--hint-border);
   padding:18px 16px;
   cursor:pointer;
   background:rgba(255,255,255,0.012);
@@ -680,7 +724,7 @@ section{
   letter-spacing:0.03em;
   color:var(--text-secondary);
   text-decoration:none;
-  border:1px solid var(--line-strong);
+  border:1px solid var(--hint-border);
   padding:6px 10px;
   transition:color .25s var(--ease), border-color .25s var(--ease);
 }
@@ -708,11 +752,16 @@ section{
   grid-template-columns: 90px 1fr auto;
   gap:26px;
   align-items:start;
-  transition:background .3s var(--ease);
+  transition:background .3s var(--ease), transform .3s var(--ease), box-shadow .3s var(--ease);
 }
-.record:hover{ background:rgba(255,255,255,0.015); }
+.record:hover{
+  background:rgba(255,255,255,0.02);
+  transform:translateX(4px);
+  box-shadow:-2px 0 0 var(--accent-soft);
+}
 @media (max-width: 700px){
   .record{ grid-template-columns:1fr; gap:12px; }
+  .record:hover{ transform:none; }
 }
 
 .record .rec-id{
@@ -752,18 +801,33 @@ section{
   padding:4px 9px;
 }
 .rec-link{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   font-family:var(--font-mono);
   font-size:11px;
+  font-weight:500;
   letter-spacing:0.1em;
   text-transform:uppercase;
-  color:var(--accent);
+  color:#1c1608;
   text-decoration:none;
-  border:1px solid var(--accent-soft);
-  padding:9px 16px;
+  border:1px solid var(--hint-border-strong);
+  padding:10px 18px;
   white-space:nowrap;
-  transition:background .25s var(--ease), color .25s var(--ease);
+  background:linear-gradient(135deg, #f2dfaf 0%, var(--accent) 55%, #c9a25f 100%);
+  background-size:180% 180%;
+  background-position:0% 50%;
+  box-shadow:0 0 0 rgba(216,184,114,0);
+  overflow:hidden;
+  transition:background-position .5s var(--ease), box-shadow .3s var(--ease), transform .25s var(--ease);
 }
-.rec-link:hover{ background:var(--accent); color:var(--void); }
+.rec-link:hover{
+  background-position:100% 50%;
+  box-shadow:0 6px 24px -6px var(--accent-glow), 0 0 0 3px rgba(198,214,255,0.12);
+  transform:translateY(-2px);
+}
+.rec-link:active{ transform:translateY(0); }
 
 .empty-state{
   padding:44px 28px;
@@ -917,7 +981,7 @@ section{
   position:absolute;
   top:20px; right:20px;
   background:none;
-  border:1px solid var(--line-strong);
+  border:1px solid var(--hint-border);
   color:var(--text-secondary);
   font-family:var(--font-mono);
   font-size:11px;
@@ -960,7 +1024,7 @@ section{
      UTILITY BAR
      ============================================================ -->
 <div class="utility-bar">
-  <button class="util-btn" id="sound-toggle" type="button" aria-pressed="true">
+  <button class="util-btn tap-hint" id="sound-toggle" type="button" aria-pressed="true">
     <span class="dot" aria-hidden="true"></span><span id="sound-label">Sound: On</span>
   </button>
 </div>
@@ -1220,11 +1284,11 @@ var PROJECTS = [
   },
   {
     id:"P-007",
-    status:"IN PROGRESS",
+    status:"ACTIVE",
     name:"Crusaders Toolbox",
     desc:"A scripting utility for procedural shapes and mass entity manipulation. Summons and arranges entities into spheres, cubes, and torus formations for building complex structures through code.",
     tags:["Procedural Generation","Entity Scripting","Utility"],
-    url:""
+    url:"https://www.curseforge.com/minecraft-bedrock/scripts/crusaderstoolbox"
   }
 ];
 
@@ -1252,7 +1316,7 @@ function renderHobbies(){
   HOBBIES.forEach(function(h){
     var hasSub = !!(h.subtopics && h.subtopics.length);
     var el = document.createElement(hasSub ? "div" : "button");
-    el.className = "node" + (hasSub ? " has-subtopics" : "");
+    el.className = "node tap-hint" + (hasSub ? " has-subtopics" : "");
     if (!hasSub) el.type = "button";
     el.setAttribute("role","listitem");
     el.setAttribute("aria-expanded","false");
@@ -1312,7 +1376,7 @@ function renderArchive(containerId, items, emptyMessage){
     var rec = document.createElement("article");
     rec.className = "record";
     var linkHTML = p.url
-      ? '<a class="rec-link" href="' + p.url + '" target="_blank" rel="noopener noreferrer">Enter Record</a>'
+      ? '<a class="rec-link" href="' + p.url + '" target="_blank" rel="noopener noreferrer">View Project</a>'
       : '<span class="rec-link" style="opacity:.4;cursor:default;pointer-events:none;">Link Pending</span>';
     rec.innerHTML =
       '<div class="rec-id">' + p.id + '<span class="status">' + p.status + '</span></div>' +
@@ -1449,6 +1513,24 @@ if (!prefersReducedMotion && "IntersectionObserver" in window){
     });
   }, { threshold:0.15 });
   document.querySelectorAll(".reveal").forEach(function(el){ revealObserver.observe(el); });
+
+  var staggerObserver = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting){
+        var children = Array.prototype.slice.call(entry.target.children);
+        children.forEach(function(child, i){
+          child.classList.add("stagger-item");
+          child.style.transitionDelay = (i * 45) + "ms";
+          requestAnimationFrame(function(){ child.classList.add("stagger-in"); });
+        });
+        staggerObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.1 });
+  ["constellation","projects-archive","experiments-archive"].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) staggerObserver.observe(el);
+  });
 } else {
   document.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in-view"); });
 }
