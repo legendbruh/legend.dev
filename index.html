@@ -235,9 +235,66 @@ section{
   top:0; right:0;
   z-index:40;
   display:flex;
-  gap:2px;
+  align-items:center;
+  gap:10px;
   padding:22px 24px;
 }
+
+/* Circular glass background-cycle button */
+.bg-toggle-btn{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--hint-border);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  color:var(--text-primary);
+  cursor:pointer;
+  padding:0;
+  opacity:1;
+  animation:bgToggleBreathe 3.2s ease-in-out infinite;
+  transition:border-color .25s var(--ease), background .25s var(--ease), transform .15s var(--ease);
+}
+.bg-toggle-btn:hover{
+  border-color:var(--accent-soft);
+  background:rgba(255,255,255,0.1);
+  transform:translateY(-1px);
+}
+.bg-toggle-btn.is-settled{
+  animation:none;
+  opacity:1;
+  transition:opacity .6s ease, border-color .25s var(--ease), background .25s var(--ease), transform .15s var(--ease);
+}
+.bg-toggle-icon{
+  font-size:16px;
+  line-height:1;
+  display:block;
+  transform:translateY(-0.5px);
+}
+@keyframes bgToggleBreathe{
+  0%, 100%{ opacity:1; }
+  50%{ opacity:0.08; }
+}
+@media (prefers-reduced-motion: reduce){
+  .bg-toggle-btn{ animation:none; opacity:1; }
+}
+
+/* Fullscreen background video (states 1-6) */
+.bg-video{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+
 .util-btn{
   font-family:var(--font-mono);
   font-size:10px;
@@ -1229,6 +1286,7 @@ section{
 <body>
 
 <canvas id="bg-canvas" aria-hidden="true"></canvas>
+<video id="bg-video" class="bg-video" muted loop playsinline aria-hidden="true"></video>
 <div class="atmosphere" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
@@ -1238,6 +1296,9 @@ section{
      UTILITY BAR
      ============================================================ -->
 <div class="utility-bar">
+  <button class="bg-toggle-btn" id="bg-toggle-btn" type="button" aria-label="Cycle background" title="Cycle background">
+    <span class="bg-toggle-icon" aria-hidden="true">&#10227;</span>
+  </button>
   <button class="util-btn tap-hint" id="sound-toggle" type="button" aria-pressed="true">
     <span class="dot" aria-hidden="true"></span><span id="sound-label">Sound: On</span>
   </button>
@@ -1291,7 +1352,7 @@ section{
     </div>
 
     <h1 class="hero-name" id="hero-name">LEGEND <span class="last">MENDONCA</span></h1>
-    <p class="hero-tags" id="hero-tags">PROGRAMMER<span>//</span>HUMAN<span>//</span>EXPERIMENTALIST</p>
+    <p class="hero-tags" id="hero-tags">PROGRAMMER<span>//</span>ASTROPHILE<span>//</span>EXPERIMENTALIST</p>
 
     <p class="hero-quote" id="hero-quote">
       <span class="line">Nothing is more uncertain</span>
@@ -1467,7 +1528,9 @@ var HOBBIES = [
   { title:"Electronics", desc:"Breadboards, components, and things that spark." },
   { title:"AI", desc:"Models, behavior, and the edges of what they can do." },
   { title:"Art", desc:"Visual thinking, used as a break from logical thinking." },
+  { title:"Artistic Design", desc:"Shaping how something looks and feels, not just how it works." },
   { title:"Modding", desc:"Changing systems that were not built to be changed." },
+  { title:"Stargazing", desc:"Looking up and losing track of time." },
   { title:"Experimental Projects", desc:"Anything without a clear category yet." }
 ];
 
@@ -2347,6 +2410,75 @@ document.addEventListener("keydown", function(e){
   }
 });
 
+})();
+</script>
+
+<!-- ============================================================
+     BACKGROUND CYCLE BUTTON (state 0 = code background, 1-6 = video)
+     Self-contained: does not touch existing background/site logic.
+     ============================================================ -->
+<script>
+(function(){
+  "use strict";
+
+  var VIDEO_SOURCES = [
+    "graphics1.mp4",
+    "graphics2.mp4",
+    "graphics3.mp4",
+    "graphics4.mp4",
+    "graphics5.mp4",
+    "graphics6.mp4"
+  ];
+
+  var btn = document.getElementById("bg-toggle-btn");
+  var video = document.getElementById("bg-video");
+  var codeBg = document.getElementById("bg-canvas");
+  if (!btn || !video) return;
+
+  var state = 0;
+
+  function setState(next){
+    state = next;
+
+    if (state === 0){
+      /* Back to the default code-animated background */
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      video.style.display = "none";
+      if (codeBg) codeBg.style.display = "";
+    } else {
+      /* Hide the code background, play the matching video */
+      if (codeBg) codeBg.style.display = "none";
+      var src = VIDEO_SOURCES[state - 1];
+      if (video.getAttribute("src") !== src){
+        video.setAttribute("src", src);
+      }
+      video.style.display = "block";
+      var playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === "function"){
+        playPromise.catch(function(){ /* ignore autoplay rejection; click is a user gesture so this normally succeeds */ });
+      }
+    }
+  }
+
+  /* Breathing opacity: settle to full opacity on interaction, resume the
+     smooth pulse after a period of inactivity. */
+  var settleTimer = null;
+  function settle(){
+    btn.classList.add("is-settled");
+    if (settleTimer) clearTimeout(settleTimer);
+    settleTimer = setTimeout(function(){
+      btn.classList.remove("is-settled");
+    }, 4000);
+  }
+
+  btn.addEventListener("pointerenter", settle);
+  btn.addEventListener("focus", settle);
+  btn.addEventListener("click", function(){
+    settle();
+    setState((state + 1) % 7);
+  });
 })();
 </script>
 
