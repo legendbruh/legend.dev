@@ -1289,6 +1289,40 @@ section{
   transition:opacity .4s var(--ease), transform .4s var(--ease);
 }
 .egg-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ============================================================
+   LIGHT MODE OVERRIDES
+   ============================================================ */
+html.light-mode {
+  --void: #f4f5f7;
+  --deep: #eaedf4;
+  --atmosphere: #e2e6f0;
+  --atmosphere-2: #ced4e2;
+  --line: rgba(5,6,10,0.1);
+  --line-strong: rgba(5,6,10,0.22);
+  --text-primary: #0a0e1a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --accent: #b47918;
+  --accent-soft: rgba(180,121,24,0.55);
+  --accent-dim: rgba(180,121,24,0.14);
+  --accent-glow: rgba(180,121,24,0.35);
+  --hint-border: rgba(10,14,26,0.15);
+  --hint-border-strong: rgba(10,14,26,0.4);
+}
+html.light-mode .nav-instrument{
+  background:linear-gradient(180deg, rgba(244,245,247,0.4), rgba(244,245,247,0.85));
+}
+@media (max-width: 860px){
+  html.light-mode .nav-instrument{ background:rgba(244,245,247,0.97); }
+  html.light-mode .nav-toggle{ background:rgba(244,245,247,0.7); }
+}
+html.light-mode .record{ background:#ffffff; }
+html.light-mode .archive-panel{ background:#f4f5f7; }
+html.light-mode .empty-state{ background:#ffffff; }
+html.light-mode .util-btn{ background:rgba(244,245,247,0.7); }
+html.light-mode .egg-toast{ background:rgba(244,245,247,0.9); }
+
 </style>
 </head>
 <body>
@@ -1341,6 +1375,12 @@ section{
     </li>
     <li class="nav-item" data-section="contact">
       <a class="nav-link" href="#contact"><span class="idx">05</span><span class="node"></span><span class="label">Contact</span></a>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link" id="theme-toggle-btn" type="button" aria-pressed="false" aria-label="Toggle Theme">
+        <span class="idx">☼</span><span class="node"></span><span class="label">Theme</span>
+      </button>
     </li>
   </ul>
   <button class="text-size-toggle" id="text-size-toggle" type="button" aria-pressed="false">
@@ -1992,6 +2032,21 @@ function updateActiveNav(){
 }
 window.addEventListener("scroll", updateActiveNav, { passive:true });
 updateActiveNav();
+
+/* Theme Toggle logic */
+var themeToggleBtn = document.getElementById("theme-toggle-btn");
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener("click", function(){
+    var isLight = document.documentElement.classList.toggle("light-mode");
+    themeToggleBtn.setAttribute("aria-pressed", String(isLight));
+    themeToggleBtn.querySelector(".idx").textContent = isLight ? "☾" : "☼";
+    if (typeof playTone === "function") playTone(isLight ? 560 : 380, 0.05, 0.16);
+  });
+  themeToggleBtn.addEventListener("mouseenter", function(){
+    if (typeof playTone === "function") playTone(600, 0.03, 0.09);
+  });
+}
+
 
 /* ============================================================
    SCROLL REVEALS
