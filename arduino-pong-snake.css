@@ -1,0 +1,3193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arduino Pong + Snake: Physics & Mathematics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #121009;
+    --panel: #1b170f;
+    --panel-2: #221c12;
+    --gold: #c9a24b;
+    --gold-dim: #8a6f34;
+    --ember: #b23a2e;
+    --ember-bright: #e2593f;
+    --text: #e8dfc9;
+    --text-dim: #a89d80;
+    --border: #33291a;
+    --radius: 10px;
+    --serif: 'Cinzel', serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  body.light {
+    --bg: #f3ede0;
+    --panel: #fffaf0;
+    --panel-2: #f4ecd9;
+    --text: #2c2415;
+    --text-dim: #6b5d3f;
+    --border: #d8c9a3;
+    --gold: #8a6f24;
+    --gold-dim: #b8994a;
+    --ember: #a3341f;
+    --ember-bright: #c94d30;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  ::selection { background: var(--ember); color: #fff; }
+
+  /* ---------- Layout Shell ---------- */
+  .shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    z-index: 50;
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--gold-dim);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand strong { display:block; font-family: var(--serif); font-size: 15px; color: var(--gold); letter-spacing: 0.04em; margin-bottom:4px; }
+
+  .navlist { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+  .navlist a {
+    display: block;
+    font-size: 13.5px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--text-dim);
+    border-left: 2px solid transparent;
+    transition: all .2s ease;
+  }
+  .navlist a:hover { color: var(--text); background: var(--panel-2); }
+  .navlist a.active {
+    color: var(--gold);
+    border-left: 2px solid var(--ember);
+    background: var(--panel-2);
+  }
+
+  /* ---------- Expand / collapse nav groups ---------- */
+  .nav-group { margin: 2px 0; }
+  .nav-group-row { display: flex; align-items: center; }
+  .nav-group-row .nav-parent-link { flex: 1; }
+  .nav-expand-toggle {
+    width: 26px; height: 26px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-dim);
+    background: none; border: none;
+    border-radius: 4px;
+    transition: color .2s ease;
+  }
+  .nav-expand-toggle:hover { color: var(--gold); }
+  .nav-expand-toggle .chev {
+    display: inline-block;
+    font-size: 13px;
+    transition: transform .25s ease;
+  }
+  .nav-group.open .nav-expand-toggle .chev { transform: rotate(90deg); }
+  .nav-subgroup {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: max-height .35s ease, opacity .3s ease;
+  }
+  .nav-group.open .nav-subgroup { max-height: 320px; opacity: 1; }
+  .nav-subgroup a { font-size: 12.5px; padding: 7px 10px 7px 22px; color: var(--text-dim); }
+  .nav-subgroup a:hover { color: var(--text); background: var(--panel-2); }
+  .nav-subgroup a.active {
+    color: var(--gold);
+    border-left: 2px solid var(--ember);
+    background: var(--panel-2);
+  }
+
+  .theme-toggle {
+    margin-top: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .2s ease, color .2s ease;
+  }
+  .theme-toggle:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  .mobile-bar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .mobile-bar .brand { border: none; padding: 0; }
+  .burger {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* ---------- Main ---------- */
+  main { padding: 0; overflow-x: hidden; }
+
+  .hero {
+    position: relative;
+    padding: 56px 60px 10px;
+    background-image:
+      linear-gradient(180deg, rgba(18,16,9,0) 0%, var(--bg) 100%),
+      repeating-linear-gradient(0deg, transparent 0 39px, rgba(201,162,75,0.05) 39px 40px),
+      repeating-linear-gradient(90deg, transparent 0 39px, rgba(201,162,75,0.05) 39px 40px);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::after {
+    content:'';
+    position:absolute; inset:0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(178,58,46,0.12), transparent 60%);
+    pointer-events:none;
+  }
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--ember-bright);
+    margin-bottom: 18px;
+    opacity: 0;
+    animation: fadeUp .7s ease forwards;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(38px, 6vw, 76px);
+    color: var(--gold);
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    text-shadow: 0 0 26px rgba(201,162,75,0.25);
+    opacity: 0;
+    animation: fadeUp .8s ease .1s forwards;
+  }
+  .hero-sub {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    color: var(--text-dim);
+    margin-top: 18px;
+    opacity: 0;
+    animation: fadeUp .8s ease .25s forwards;
+  }
+  .hero-intro {
+    max-width: 640px;
+    margin-top: 16px;
+    font-size: 16.5px;
+    color: var(--text-dim);
+    opacity: 0;
+    animation: fadeUp .8s ease .4s forwards;
+  }
+  .hero-tag {
+    display: inline-block;
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    color: var(--gold-dim);
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 9px 16px;
+    border-radius: 999px;
+    opacity: 0;
+    animation: fadeUp .8s ease .55s forwards;
+  }
+
+  /* ---------- About / creator card ---------- */
+  /* ---------- Compact page intro (replaces large hero) ---------- */
+  .page-intro {
+    padding: 34px 60px 6px;
+  }
+  .page-intro .hero-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--ember-bright);
+    margin-bottom: 8px;
+  }
+  .compact-title {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3.6vw, 38px);
+    color: var(--gold);
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+  .page-intro .hero-sub {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+
+  .about-section {
+    padding: 18px 60px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .about-card {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px 30px;
+  }
+  .about-avatar {
+    flex: none;
+    width: 96px;
+    height: 96px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid var(--gold-dim);
+    box-shadow: 0 0 20px rgba(201,162,75,0.18);
+  }
+  .about-text h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .about-text p {
+    font-size: 14.5px;
+    color: var(--text-dim);
+    max-width: 640px;
+    margin-bottom: 16px;
+  }
+  .about-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .about-badges span {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+  }
+  @media (max-width: 640px) {
+    .about-card { flex-direction: column; text-align: center; }
+    .about-badges { justify-content: center; }
+  }
+
+  .scroll-cue {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 26px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    opacity: 0;
+    animation: fadeUp .8s ease .7s forwards;
+  }
+  .scroll-cue .chev-down {
+    display: flex;
+    flex-direction: column;
+    line-height: 0.6;
+    color: var(--gold-dim);
+    animation: chevBounce 1.8s ease-in-out infinite;
+  }
+  .scroll-cue .chev-down span { font-size: 13px; }
+  .scroll-cue .chev-down span:nth-child(2) { opacity: 0.5; }
+  @keyframes chevBounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section { padding: 56px 60px; border-bottom: 1px solid var(--border); scroll-margin-top: 24px; }
+  #overview { padding-top: 14px; }
+  section:last-of-type { border-bottom: none; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    color: var(--ember-bright);
+    margin-bottom: 10px;
+  }
+  h2.section-title {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3.4vw, 40px);
+    color: var(--gold);
+    margin-bottom: 20px;
+    letter-spacing: 0.01em;
+  }
+  .lede { color: var(--text-dim); max-width: 720px; font-size: 15.5px; margin-bottom: 40px; }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  /* Cards */
+  .grid { display: grid; gap: 18px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-6 { grid-template-columns: repeat(6, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--gold-dim);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(201,162,75,0.08);
+  }
+  .card .icon-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ember-bright);
+    margin-bottom: 8px;
+  }
+  .card h3 { font-family: var(--serif); font-size: 18px; color: var(--gold); margin-bottom: 8px; letter-spacing:0.01em; }
+  .card p { font-size: 13.8px; color: var(--text-dim); }
+
+  /* Pipeline */
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    margin-top: 10px;
+  }
+  .pipe-node {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    text-align:center;
+  }
+  .pipe-arrow {
+    font-family: var(--mono);
+    color: var(--ember-bright);
+    font-size: 18px;
+    margin: 0 10px;
+    display: inline-block;
+    animation: pulseArrow 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseArrow { 0%,100%{opacity:.45;} 50%{opacity:1;} }
+
+  /* Formula block */
+  .formula {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--ember);
+    border-radius: 6px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 17px;
+    color: var(--gold);
+    margin: 18px 0;
+    letter-spacing: 0.02em;
+    overflow-x: auto;
+  }
+  .formula sub, .var-defs sub {
+    font-size: 0.65em;
+    color: var(--ember-bright);
+    bottom: -0.3em;
+  }
+  .var-defs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 8px 20px; margin-top: 14px; }
+  .var-defs div { font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
+  .var-defs span { color: var(--gold); }
+
+  /* Coordinate grid */
+  .coord-wrap { display:flex; gap: 40px; flex-wrap: wrap; align-items:center; }
+  .coord-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 32px);
+    grid-template-rows: repeat(8, 32px);
+    gap: 3px;
+    background: var(--panel-2);
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+  }
+  .cell { background: rgba(201,162,75,0.06); border-radius: 2px; }
+  .moving-dot {
+    position: absolute;
+    width: 26px; height: 26px;
+    background: var(--ember-bright);
+    border-radius: 4px;
+    box-shadow: 0 0 14px var(--ember-bright);
+    animation: dotPath 6s linear infinite;
+  }
+  @keyframes dotPath {
+    0%   { transform: translate(10px, 10px); }
+    20%  { transform: translate(230px, 10px); }
+    40%  { transform: translate(230px, 90px); }
+    55%  { transform: translate(120px, 200px); }
+    75%  { transform: translate(30px, 230px); }
+    100% { transform: translate(10px, 10px); }
+  }
+  .coord-label { font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
+  .coord-label span { color: var(--gold); }
+
+  /* Analog bar */
+  .bar-track {
+    width: 100%;
+    max-width: 420px;
+    height: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+    margin: 18px 0;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(90deg, var(--ember), var(--gold));
+    border-radius: 999px;
+    animation: barSway 4s ease-in-out infinite;
+  }
+  @keyframes barSway {
+    0%,100% { width: 20%; margin-left: 0%; }
+    50% { width: 20%; margin-left: 78%; }
+  }
+
+  /* Vector arrow / ball */
+  .stage {
+    position: relative;
+    height: 200px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .ball {
+    position: absolute;
+    width: 18px; height: 18px;
+    background: var(--gold);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--gold);
+    animation: bounceBall 3.6s ease-in-out infinite;
+  }
+  @keyframes bounceBall {
+    0%   { top: 20px; left: 20px; }
+    25%  { top: 150px; left: 45%; }
+    50%  { top: 20px; left: calc(100% - 40px); }
+    75%  { top: 150px; left: 45%; }
+    100% { top: 20px; left: 20px; }
+  }
+  .vec-arrow {
+    position: absolute;
+    top: 40%; left: 10%;
+    font-family: var(--mono);
+    color: var(--ember-bright);
+    font-size: 22px;
+    animation: vecSway 3.6s ease-in-out infinite;
+  }
+  @keyframes vecSway {
+    0%,100% { transform: rotate(20deg) translateX(0); }
+    50% { transform: rotate(-15deg) translateX(60px); }
+  }
+
+  /* Decision tree */
+  .decision {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-dim);
+  }
+  .decision .branches { display: flex; gap: 60px; margin-top: 6px; }
+  .branch-yes { color: var(--ember-bright); }
+  .branch-no  { color: var(--gold); }
+  .decision .node {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 6px;
+  }
+
+  /* Snake grid */
+  .snake-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 24px);
+    grid-template-rows: repeat(6, 24px);
+    gap: 3px;
+    background: var(--panel-2);
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+  }
+  .snake-cell { background: rgba(201,162,75,0.06); border-radius: 2px; }
+  .snake-seg {
+    position: absolute;
+    width: 20px; height: 20px;
+    background: var(--ember-bright);
+    border-radius: 3px;
+    box-shadow: 0 0 8px var(--ember-bright);
+  }
+
+  /* State machine */
+  .state-machine { display:flex; gap: 50px; flex-wrap: wrap; align-items:center; justify-content:center; margin-top: 10px; }
+  .state-box {
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    border-radius: 8px;
+    padding: 16px 22px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--gold);
+    text-align: center;
+    animation: statePulse 3s ease-in-out infinite;
+  }
+  .state-box.alt { animation-delay: 1.5s; color: var(--ember-bright); }
+  @keyframes statePulse {
+    0%,100% { box-shadow: 0 0 0 rgba(201,162,75,0); border-color: var(--border); }
+    50% { box-shadow: 0 0 18px rgba(201,162,75,0.35); border-color: var(--gold-dim); }
+  }
+
+  /* Lives hearts */
+  .lives-row { display:flex; gap: 40px; align-items:center; font-size: 26px; margin-top: 10px; flex-wrap: wrap; }
+  .lives-row .set { font-family: var(--mono); font-size: 13px; color: var(--text-dim); display:flex; flex-direction:column; gap:6px; align-items:center; }
+
+  /* Code viewer */
+  .code-block {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-x: auto;
+    max-height: 520px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 12.8px;
+    color: var(--text);
+    padding: 22px;
+    white-space: pre;
+    line-height: 1.55;
+  }
+  .code-header {
+    display:flex; justify-content: space-between; align-items:center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .copy-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color .2s ease;
+  }
+  .copy-btn:hover { border-color: var(--gold-dim); }
+
+  /* Summary cards */
+  .summary-card { text-align:center; }
+  .summary-card h3 { font-size: 20px; }
+
+  footer {
+    padding: 60px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+  footer .credit-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: var(--gold);
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 10px 18px;
+    border-radius: 999px;
+    transition: border-color .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  footer .credit-link .play-icon { font-size: 12px; transform: translateY(-1px); }
+  footer .credit-link:hover {
+    color: var(--ember-bright);
+    border-color: var(--gold-dim);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+  }
+
+  .glow-label {
+    display:inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ember-bright);
+    border: 1px solid rgba(226,89,63,0.4);
+    background: rgba(226,89,63,0.08);
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  /* Mobile nav overlay */
+  .nav-overlay {
+    display:none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 70;
+  }
+  .nav-overlay.open { display:block; }
+
+  @media (max-width: 980px) {
+    .grid-3, .grid-4, .grid-6, .grid-2 { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px;
+      transform: translateX(-100%);
+      transition: transform .3s ease;
+      z-index: 80;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .mobile-bar { display: flex; }
+    .hero { padding: 40px 24px 10px; }
+    .page-intro { padding: 24px 24px 4px; }
+    section { padding: 44px 24px; }
+    #overview { padding-top: 10px; }
+    .grid-3, .grid-4, .grid-6, .grid-2 { grid-template-columns: 1fr; }
+    .coord-wrap { flex-direction: column; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-overlay" id="navOverlay"></div>
+
+<div class="shell">
+  <nav class="sidebar" id="sidebar">
+    <div class="brand"><strong>ARDUINO PONG + SNAKE</strong>PHYSICS · MATH · GAME LOGIC</div>
+    <ul class="navlist" id="navlist">
+      <li><a href="#overview" data-nav>Overview</a></li>
+      <li><a href="#pipeline" data-nav>System Pipeline</a></li>
+
+      <li class="nav-group" data-group>
+        <div class="nav-group-row">
+          <a href="#coordinates" class="nav-parent-link" data-nav>Physics & Motion</a>
+          <button type="button" class="nav-expand-toggle" aria-label="Expand Physics & Motion"><span class="chev">&#8250;</span></button>
+        </div>
+        <div class="nav-subgroup">
+          <a href="#coordinates" data-nav>Coordinate System</a>
+          <a href="#joystick" data-nav>Joystick Mathematics</a>
+          <a href="#velocity" data-nav>Velocity & Timing</a>
+          <a href="#ballphysics" data-nav>Pong Ball Physics</a>
+          <a href="#reflection" data-nav>Reflection</a>
+          <a href="#paddle" data-nav>Paddle Deflection</a>
+          <a href="#collision" data-nav>Collision Detection</a>
+        </div>
+      </li>
+
+      <li class="nav-group" data-group>
+        <div class="nav-group-row">
+          <a href="#snake" class="nav-parent-link" data-nav>Game Logic</a>
+          <button type="button" class="nav-expand-toggle" aria-label="Expand Game Logic"><span class="chev">&#8250;</span></button>
+        </div>
+        <div class="nav-subgroup">
+          <a href="#snake" data-nav>Snake Mathematics</a>
+          <a href="#random" data-nav>Randomness</a>
+          <a href="#gamestate" data-nav>Game State</a>
+          <a href="#score" data-nav>Score & Lives</a>
+        </div>
+      </li>
+
+      <li class="nav-group" data-group>
+        <div class="nav-group-row">
+          <a href="#hardware" class="nav-parent-link" data-nav>Hardware & Code</a>
+          <button type="button" class="nav-expand-toggle" aria-label="Expand Hardware & Code"><span class="chev">&#8250;</span></button>
+        </div>
+        <div class="nav-subgroup">
+          <a href="#hardware" data-nav>Hardware Overview</a>
+          <a href="#architecture" data-nav>Code Architecture</a>
+          <a href="#code" data-nav>Code</a>
+        </div>
+      </li>
+
+      <li class="nav-group" data-group>
+        <div class="nav-group-row">
+          <a href="#whyphysics" class="nav-parent-link" data-nav>Concepts</a>
+          <button type="button" class="nav-expand-toggle" aria-label="Expand Concepts"><span class="chev">&#8250;</span></button>
+        </div>
+        <div class="nav-subgroup">
+          <a href="#whyphysics" data-nav>Why This Is Physics</a>
+          <a href="#whymath" data-nav>Why This Is Mathematics</a>
+        </div>
+      </li>
+
+      <li><a href="#summary" data-nav>Project Summary</a></li>
+      <li><a href="#credits" data-nav>Credits</a></li>
+    </ul>
+    <button class="theme-toggle" id="themeToggle">☀ TOGGLE ILLUMINATED MODE</button>
+    <button class="theme-toggle" id="soundToggle" style="margin-top:8px;">🔊 SOUND: ON</button>
+  </nav>
+
+  <main>
+    <div class="mobile-bar">
+      <div class="brand"><strong>PONG + SNAKE</strong></div>
+      <button class="burger" id="burger">MENU</button>
+    </div>
+
+    <div class="page-intro reveal">
+      <div class="hero-label">EMBEDDED SYSTEMS PROJECT · CLASS 12</div>
+      <h1 class="compact-title">ARDUINO PONG + SNAKE</h1>
+      <div class="hero-sub">PHYSICS • MATHEMATICS • GAME LOGIC • EMBEDDED SYSTEMS</div>
+    </div>
+
+    <!-- 01 OVERVIEW -->
+    <section class="about-section reveal">
+      <div class="about-card">
+        <img class="about-avatar" src="data:image/jpeg;base64,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" alt="Crusaderly avatar">
+        <div class="about-text">
+          <h3>CRUSADERLY</h3>
+          <p>I'm a creator and developer focused on experimenting with custom mechanics, gameplay systems, automation, and technical projects.</p>
+          <div class="about-badges">
+            <span>&#128295; Amature Developer</span>
+            <span>&#129504; Custom Mechanics &amp; Systems</span>
+            <span>&#9881;&#65039; Redstone &amp; Automation</span>
+            <span>&#127918; Gameplay Experiments</span>
+            <span>&#128187; Programming &amp; Modding</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="overview">
+      <div class="eyebrow reveal">01 · OVERVIEW</div>
+      <h2 class="section-title reveal">A Continuous Processing Loop</h2>
+      <p class="lede reveal">The Arduino continuously repeats one basic pipeline, dozens of times per second: it reads input, processes it mathematically, applies physics and game rules, updates game logic, and finally drives the display and sound output.</p>
+
+      <div class="pipeline reveal">
+        <span class="pipe-node">INPUT</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;">
+        <span class="pipe-node">READ VALUES</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;">
+        <span class="pipe-node">MATHEMATICAL PROCESSING</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;">
+        <span class="pipe-node">PHYSICS / GAME RULES</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;">
+        <span class="pipe-node">GAME LOGIC</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;">
+        <span class="pipe-node">DISPLAY + SOUND</span>
+      </div>
+
+      <div class="grid grid-3 reveal" style="margin-top:40px;">
+        <div class="card"><div class="icon-label">INPUT</div><h3>Joystick + Buttons</h3><p>Raw analog and digital signals enter the system.</p></div>
+        <div class="card"><div class="icon-label">PROCESSING</div><h3>Arduino UNO</h3><p>The microcontroller executes the game loop every cycle.</p></div>
+        <div class="card"><div class="icon-label">MATHEMATICS</div><h3>Coordinates + Velocity + Timing</h3><p>Numerical models describe position and motion.</p></div>
+        <div class="card"><div class="icon-label">PHYSICS</div><h3>Collision + Reflection + Movement</h3><p>Simplified rules govern how objects interact.</p></div>
+        <div class="card"><div class="icon-label">GAME LOGIC</div><h3>Pong / Snake + Score + Lives</h3><p>Rules translate motion into playable outcomes.</p></div>
+        <div class="card"><div class="icon-label">OUTPUT</div><h3>LED Matrix + TM1637 + LEDs + Buzzer</h3><p>The result becomes visible and audible feedback.</p></div>
+      </div>
+    </section>
+
+    <!-- 02 COORDINATES -->
+    <section id="coordinates">
+      <div class="eyebrow reveal">02 · COORDINATE SYSTEM</div>
+      <h2 class="section-title reveal">Mapping the 8×8 Matrix</h2>
+      <p class="lede reveal">The 8×8 LED matrix can be represented using a 2D coordinate system, exactly like a mathematical grid. Every pixel on the matrix corresponds to a pair of numbers.</p>
+
+      <div class="coord-wrap reveal">
+        <div class="coord-grid" id="coordGrid">
+          <div class="moving-dot"></div>
+        </div>
+        <div>
+          <div class="coord-label"><span>x</span> → horizontal position (0 to 7)</div>
+          <div class="coord-label" style="margin-top:8px;"><span>y</span> → vertical position (0 to 7)</div>
+          <div class="formula" style="margin-top:20px;">(x, y)</div>
+          <p style="color:var(--text-dim); font-size:13.8px;">Example: <span style="color:var(--gold); font-family:var(--mono);">(3, 5)</span> means column 3, row 5 on the matrix.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 JOYSTICK -->
+    <section id="joystick">
+      <div class="eyebrow reveal">03 · JOYSTICK MATHEMATICS</div>
+      <h2 class="section-title reveal">From Analog Signal to Direction</h2>
+      <p class="lede reveal">The joystick produces analog values. The Arduino reads <strong style="color:var(--gold)">A0</strong> for the X-axis and <strong style="color:var(--gold)">A1</strong> for the Y-axis, converting a continuous electrical reading into a discrete game direction.</p>
+
+      <div class="bar-track reveal"><div class="bar-fill"></div></div>
+
+      <div class="formula reveal">
+if value > upper threshold → move one direction
+if value < lower threshold → move opposite direction
+otherwise → remain approximately centered
+      </div>
+
+      <p class="lede reveal" style="margin-bottom:0;">This dead-zone concept prevents tiny joystick fluctuations from constantly moving the game object.</p>
+
+      <div class="pipeline reveal" style="margin-top:30px;">
+        <span class="pipe-node">JOYSTICK POSITION</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">ANALOG READING</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">DIRECTION</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">POSITION UPDATE</span>
+      </div>
+    </section>
+
+    <!-- 04 VELOCITY & TIMING -->
+    <section id="velocity">
+      <div class="eyebrow reveal">04 · VELOCITY & TIMING</div>
+      <h2 class="section-title reveal">Position, Velocity and Time</h2>
+      <p class="lede reveal">Movement in the game is built from the same relationship physics uses in the real world: position changes according to velocity and elapsed time.</p>
+
+      <div class="formula reveal">x<sub>new</sub> = x<sub>old</sub> + v<sub>x</sub> · Δt</div>
+      <div class="var-defs reveal">
+        <div><span>x<sub>new</sub></span> = new position</div>
+        <div><span>x<sub>old</sub></span> = previous position</div>
+        <div><span>v<sub>x</sub></span> = velocity along the x-axis</div>
+        <div><span>Δt</span> = elapsed time</div>
+      </div>
+
+      <div class="formula reveal" style="margin-top:26px;">
+x<sub>new</sub> = x<sub>old</sub> + v<sub>x</sub> · Δt
+y<sub>new</sub> = y<sub>old</sub> + v<sub>y</sub> · Δt
+      </div>
+      <div class="var-defs reveal">
+        <div><span>v<sub>x</sub></span> = horizontal velocity</div>
+        <div><span>v<sub>y</sub></span> = vertical velocity</div>
+      </div>
+
+      <p class="lede reveal" style="margin-top:20px;">The game does not need real-world meters and seconds. The same mathematical structure operates using pixels / grid cells and internal game-timing units.</p>
+
+      <div class="grid grid-3 reveal" style="margin-top:10px; max-width:520px;">
+        <div class="card" style="text-align:center;"><h3 style="font-size:15px;">POSITION</h3></div>
+        <div class="card" style="text-align:center;"><h3 style="font-size:15px;">VELOCITY</h3></div>
+        <div class="card" style="text-align:center;"><h3 style="font-size:15px;">TIME</h3></div>
+      </div>
+
+      <div class="stage reveal" style="margin-top:24px; max-width:520px;">
+        <div class="ball" style="animation-name:dotPath; animation-duration:5s;"></div>
+      </div>
+    </section>
+
+    <!-- 05 PONG BALL PHYSICS -->
+    <section id="ballphysics">
+      <div class="eyebrow reveal">05 · PONG BALL PHYSICS</div>
+      <span class="glow-label reveal">SIMPLIFIED GAME PHYSICS</span>
+      <h2 class="section-title reveal">A Simplified 2D Simulation</h2>
+      <p class="lede reveal">The Pong ball carries a position, a velocity, and a direction. Its motion is a simplified model, not a physically accurate simulation.</p>
+
+      <div class="formula reveal">v = (v<sub>x</sub>, v<sub>y</sub>)</div>
+      <div class="var-defs reveal">
+        <div><span>v</span> = velocity vector</div>
+        <div><span>v<sub>x</sub></span> = horizontal velocity</div>
+        <div><span>v<sub>y</sub></span> = vertical velocity</div>
+      </div>
+
+      <div class="stage reveal" style="margin-top:26px;">
+        <div class="vec-arrow">➤</div>
+        <div class="ball" style="animation-duration:4.2s;"></div>
+      </div>
+
+      <div class="pipeline reveal" style="margin-top:28px;">
+        <span class="pipe-node">BALL</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">MOVE</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">CHECK COLLISION</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">CHANGE VELOCITY</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">CONTINUE</span>
+      </div>
+    </section>
+
+    <!-- 06 REFLECTION -->
+    <section id="reflection">
+      <div class="eyebrow reveal">06 · REFLECTION</div>
+      <h2 class="section-title reveal">Reversing a Velocity Component</h2>
+      <p class="lede reveal">When the ball hits a wall, reversing the relevant velocity component creates the reflection effect players recognize as a "bounce."</p>
+
+      <div class="grid grid-2 reveal">
+        <div class="card">
+          <div class="icon-label">HORIZONTAL WALL</div>
+          <div class="formula" style="margin:10px 0 0;">v<sub>y</sub> → -v<sub>y</sub></div>
+        </div>
+        <div class="card">
+          <div class="icon-label">VERTICAL WALL</div>
+          <div class="formula" style="margin:10px 0 0;">v<sub>x</sub> → -v<sub>x</sub></div>
+        </div>
+      </div>
+
+      <div class="stage reveal" style="margin-top:26px; max-width:520px;">
+        <div class="ball" style="animation-name: bounceBall; animation-duration: 3s;"></div>
+      </div>
+
+      <div class="grid grid-2 reveal" style="margin-top:20px; max-width:520px;">
+        <div class="card"><div class="icon-label">BEFORE</div><p style="font-family:var(--mono); color:var(--gold);">v<sub>y</sub> = positive</p></div>
+        <div class="card"><div class="icon-label">AFTER</div><p style="font-family:var(--mono); color:var(--ember-bright);">v<sub>y</sub> = negative</p></div>
+      </div>
+    </section>
+
+    <!-- 07 PADDLE DEFLECTION -->
+    <section id="paddle">
+      <div class="eyebrow reveal">07 · PADDLE DEFLECTION</div>
+      <span class="glow-label reveal">COLLISION-BASED DIRECTION CHANGE</span>
+      <h2 class="section-title reveal">Impact Position Shapes the Bounce</h2>
+      <p class="lede reveal">A paddle hit does not have to produce an identical bounce every time. The point of impact along the paddle can influence the resulting direction, giving the player more control over gameplay.</p>
+
+      <div class="grid grid-3 reveal">
+        <div class="card" style="text-align:center;"><h3>↗</h3><p>TOP OF PADDLE</p></div>
+        <div class="card" style="text-align:center;"><h3>→</h3><p>CENTER</p></div>
+        <div class="card" style="text-align:center;"><h3>↘</h3><p>BOTTOM OF PADDLE</p></div>
+      </div>
+    </section>
+
+    <!-- 08 COLLISION DETECTION -->
+    <section id="collision">
+      <div class="eyebrow reveal">08 · COLLISION DETECTION</div>
+      <h2 class="section-title reveal">Comparison, Not Sensing</h2>
+      <p class="lede reveal">Collision detection is a mathematical comparison between positions: checking whether the ball overlaps the paddle, whether the snake's head reaches food or its own body, or whether an object crosses a boundary.</p>
+
+      <div class="decision reveal">
+        <div class="node">OBJECT MOVES</div>
+        <div>↓</div>
+        <div class="node">CHECK CONDITIONS</div>
+        <div>↓</div>
+        <div class="node">COLLISION?</div>
+        <div class="branches">
+          <div class="branch-yes">YES ↓<div class="node" style="margin-top:8px;">REACT</div></div>
+          <div class="branch-no">NO ↓<div class="node" style="margin-top:8px;">CONTINUE</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 SNAKE MATHEMATICS -->
+    <section id="snake">
+      <div class="eyebrow reveal">09 · SNAKE MATHEMATICS</div>
+      <h2 class="section-title reveal">A Sequence of Coordinates</h2>
+      <p class="lede reveal">The snake is essentially a list of grid coordinates, one for each body segment.</p>
+
+      <div class="formula reveal">[(x<sub>1</sub>,y<sub>1</sub>), (x<sub>2</sub>,y<sub>2</sub>), (x<sub>3</sub>,y<sub>3</sub>), ...]</div>
+      <div class="var-defs reveal">
+        <div><span>(x<sub>i</sub>, y<sub>i</sub>)</span> = coordinate of snake segment i</div>
+      </div>
+
+      <div class="pipeline reveal" style="margin-top:26px;">
+        <span class="pipe-node">HEAD MOVES</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">NEW HEAD POSITION</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">BODY FOLLOWS</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">REMOVE LAST SEGMENT</span>
+      </div>
+      <p class="lede reveal" style="margin-top:16px;">Unless food was eaten, in which case the last segment is kept, and the snake grows by one cell.</p>
+
+      <div class="snake-grid reveal" style="margin-top:10px;" id="snakeGrid"></div>
+    </section>
+
+    <!-- 10 RANDOMNESS -->
+    <section id="random">
+      <div class="eyebrow reveal">10 · RANDOMNESS</div>
+      <h2 class="section-title reveal">Seeding Pseudo-Random Behaviour</h2>
+      <p class="lede reveal">The code seeds its random generator using an unconnected analog pin:</p>
+
+      <div class="formula reveal">randomSeed(analogRead(A3));</div>
+      <p class="lede reveal">Pin A3 is intentionally left unconnected. A floating analog pin picks up small, changing electrical noise, providing a changing starting value for pseudo-random number generation.</p>
+
+      <div class="pipeline reveal" style="margin-top:10px;">
+        <span class="pipe-node">A3 READING</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">SEED</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">PSEUDO-RANDOM SEQUENCE</span><span class="pipe-arrow">↓</span>
+        <span class="pipe-node">RANDOM GAME EVENTS</span>
+      </div>
+
+      <div class="grid grid-4 reveal" style="margin-top:30px;">
+        <div class="card"><p>Snake food position</p></div>
+        <div class="card"><p>Snake starting position</p></div>
+        <div class="card"><p>Pong starting direction</p></div>
+        <div class="card"><p>Deflection variation</p></div>
+      </div>
+
+      <p class="lede reveal" style="margin-top:24px; margin-bottom:0;">Arduino's random generation is <strong style="color:var(--gold)">pseudo-random</strong>, not true randomness. The sequence is deterministic once seeded, but appears unpredictable in practice.</p>
+    </section>
+
+    <!-- 11 GAME STATE -->
+    <section id="gamestate">
+      <div class="eyebrow reveal">11 · GAME STATE</div>
+      <h2 class="section-title reveal">A Simple State Machine</h2>
+      <p class="lede reveal">The program tracks which mode it is currently in, so the same hardware can behave as either game, or pause entirely.</p>
+
+      <div class="state-machine reveal">
+        <div class="state-box">PONG</div>
+        <div style="font-family:var(--mono); color:var(--text-dim);">switch →</div>
+        <div class="state-box alt">SNAKE</div>
+      </div>
+      <div class="state-machine reveal" style="margin-top:20px;">
+        <div class="state-box">PLAYING</div>
+        <div style="font-family:var(--mono); color:var(--text-dim);">↔</div>
+        <div class="state-box alt">PAUSED</div>
+      </div>
+      <div class="state-machine reveal" style="margin-top:20px;">
+        <div class="state-box">PLAYING</div>
+        <div style="font-family:var(--mono); color:var(--text-dim);">→</div>
+        <div class="state-box alt">GAME OVER</div>
+      </div>
+    </section>
+
+    <!-- 12 SCORE + LIVES -->
+    <section id="score">
+      <div class="eyebrow reveal">12 · SCORE & LIVES</div>
+      <h2 class="section-title reveal">Discrete Values, Physical Output</h2>
+      <p class="lede reveal">Score is stored as a number and pushed to the TM1637 display. Lives are represented physically: three LEDs, each standing for one remaining life.</p>
+
+      <div class="lives-row reveal">
+        <div class="set">3 LIVES<div>♥ ♥ ♥</div></div>
+        <div class="set">2 LIVES<div>♥ ♥ ○</div></div>
+        <div class="set">1 LIFE<div>♥ ○ ○</div></div>
+        <div class="set">GAME OVER<div>○ ○ ○</div></div>
+      </div>
+    </section>
+
+    <!-- 13 HARDWARE OVERVIEW -->
+    <section id="hardware">
+      <div class="eyebrow reveal">13 · HARDWARE OVERVIEW</div>
+      <h2 class="section-title reveal">The Core Components</h2>
+      <div class="grid grid-4 reveal">
+        <div class="card"><h3 style="font-size:15px;">ARDUINO UNO</h3><p>Main microcontroller and game processor.</p></div>
+        <div class="card"><h3 style="font-size:15px;">JOYSTICK</h3><p>Main user input.</p></div>
+        <div class="card"><h3 style="font-size:15px;">8×8 LED MATRIX</h3><p>Main game display.</p></div>
+        <div class="card"><h3 style="font-size:15px;">TM1637</h3><p>Displays score.</p></div>
+        <div class="card"><h3 style="font-size:15px;">3 LEDs</h3><p>Represent remaining lives.</p></div>
+        <div class="card"><h3 style="font-size:15px;">BUTTONS</h3><p>Game switching, speed control and pause.</p></div>
+        <div class="card"><h3 style="font-size:15px;">BUZZER</h3><p>Sound feedback.</p></div>
+        <div class="card"><h3 style="font-size:15px;">MAX7219</h3><p>Controls the LED matrix.</p></div>
+      </div>
+
+      <div class="pipeline reveal" style="margin-top:34px;">
+        <span class="pipe-node">JOYSTICK → ARDUINO</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:8px;">
+        <span class="pipe-node">ARDUINO → MATRIX</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:8px;">
+        <span class="pipe-node">ARDUINO → SCORE DISPLAY</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:8px;">
+        <span class="pipe-node">ARDUINO → LEDs</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:8px;">
+        <span class="pipe-node">ARDUINO → BUZZER</span>
+      </div>
+    </section>
+
+    <!-- 14 CODE ARCHITECTURE -->
+    <section id="architecture">
+      <div class="eyebrow reveal">14 · CODE ARCHITECTURE</div>
+      <h2 class="section-title reveal">The Software Pipeline</h2>
+      <p class="lede reveal">The Arduino code combines input handling, mathematical calculations, timing, movement, collision detection, game state, rendering and sound feedback into a single repeating loop.</p>
+
+      <div class="pipeline reveal">
+        <span class="pipe-node">INPUT</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">UPDATE</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">PHYSICS</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">COLLISION</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">GAME LOGIC</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">RENDER</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">SOUND</span></div>
+    </section>
+
+    <!-- 15 CODE -->
+    <section id="code">
+      <div class="eyebrow reveal">15 · CODE</div>
+      <h2 class="section-title reveal">Complete Arduino Source</h2>
+      <p class="lede reveal">The code below is displayed exactly as provided, unmodified.</p>
+
+      <div class="code-block reveal">
+        <div class="code-header">
+          <span>pong_snake.ino</span>
+          <button class="copy-btn" id="copyBtn">COPY CODE</button>
+        </div>
+        <pre id="codeContent">#include &lt;LedControl.h&gt;
+#include &lt;TM1637Display.h&gt;
+
+// ============================================================
+// PINS
+// ============================================================
+#define JOY_X A0
+#define JOY_Y A1
+#define JOY_BUTTON A2
+#define GAME_SWITCH_BUTTON 2
+#define SPEED_BUTTON 3
+#define HEART1 4
+#define HEART2 5
+#define HEART3 6
+#define MATRIX_DIN 8
+#define MATRIX_CLK 9
+#define MATRIX_CS 10
+#define BUZZER 11
+#define DISPLAY_CLK 12
+#define DISPLAY_DIO 13
+
+// ============================================================
+// GAME MODES
+// ============================================================
+#define PONG 0
+#define SNAKE 1
+
+#define UP 1
+#define RIGHT 2
+#define DOWN 3
+#define LEFT 4
+
+int currentGame=PONG;
+bool lastGameSwitch=HIGH;
+bool lastPauseButton=HIGH;
+
+// ============================================================
+// DEVICES
+// ============================================================
+LedControl matrix(
+MATRIX_DIN,
+MATRIX_CLK,
+MATRIX_CS,
+1
+);
+
+TM1637Display display(
+DISPLAY_CLK,
+DISPLAY_DIO
+);
+
+const byte MATRIX_BRIGHTNESS=4;
+
+int heartPins[]={
+HEART1,
+HEART2,
+HEART3
+};
+
+// ============================================================
+// SHARED SCORE
+// ============================================================
+int gameScore=0;
+
+// ============================================================
+// JOYSTICK CALIBRATION
+// ============================================================
+int joystickCenterX=512;
+int joystickCenterY=512;
+
+const int JOYSTICK_DEADZONE=180;
+
+// ============================================================
+// PONG VARIABLES
+// ============================================================
+int pongPlayerPos=3;
+
+int pongBallX=3;
+int pongBallY=3;
+
+int pongBallDirX=-1;
+int pongBallDirY=1;
+
+int pongHearts=3;
+
+int pongGameSpeed=350;
+int pongSpeedBoost=0;
+
+int pongPaddleSpeed=50;
+int pongFlickerRate=100;
+
+unsigned long pongLastMove=0;
+unsigned long pongLastPaddleMove=0;
+unsigned long pongLastFlicker=0;
+
+bool pongGameOver=false;
+bool pongBallVisible=true;
+bool pongPaused=false;
+
+// ============================================================
+// PONG LED MAPPING
+// ============================================================
+void pongLed(int row,int col,bool state){
+
+if(
+row&lt;0||
+row&gt;7||
+col&lt;0||
+col&gt;7
+)
+return;
+
+matrix.setLed(
+0,
+7-row,
+7-col,
+state
+);
+}
+
+// ============================================================
+// SCORE DISPLAY
+// ============================================================
+void updateScoreDisplay(){
+
+display.showNumberDec(
+gameScore,
+false
+);
+}
+
+// ============================================================
+// START PONG
+// ============================================================
+void startPong(){
+
+pongPlayerPos=3;
+
+pongBallX=3;
+pongBallY=3;
+
+pongBallDirX=-1;
+
+pongBallDirY=
+random(0,2)==0?-1:1;
+
+pongHearts=3;
+
+pongGameSpeed=350;
+pongSpeedBoost=0;
+
+pongGameOver=false;
+
+pongBallVisible=true;
+pongPaused=false;
+
+pongLastMove=millis();
+pongLastPaddleMove=millis();
+pongLastFlicker=millis();
+
+updatePongHearts();
+updateScoreDisplay();
+
+matrix.clearDisplay(0);
+
+pongStartupAnimation();
+
+drawPong();
+}
+
+// ============================================================
+// PONG STARTUP
+// ============================================================
+void pongStartupAnimation(){
+
+for(int n=0;n&lt;2;n++){
+
+for(int i=0;i&lt;8;i++){
+
+pongLed(i,i,true);
+pongLed(i,7-i,true);
+
+}
+
+tone(
+BUZZER,
+700+n*300,
+70
+);
+
+delay(100);
+
+matrix.clearDisplay(0);
+
+for(int i=0;i&lt;8;i++){
+
+pongLed(0,i,true);
+pongLed(7,i,true);
+pongLed(i,0,true);
+pongLed(i,7,true);
+
+}
+
+tone(
+BUZZER,
+1000+n*300,
+70
+);
+
+delay(100);
+
+matrix.clearDisplay(0);
+
+}
+
+for(int i=0;i&lt;3;i++){
+
+digitalWrite(
+heartPins[i],
+LOW
+);
+
+delay(80);
+
+digitalWrite(
+heartPins[i],
+HIGH
+);
+
+}
+
+tone(
+BUZZER,
+1200,
+100
+);
+
+delay(150);
+}
+
+// ============================================================
+// PONG UPDATE
+// ============================================================
+void updatePong(){
+
+if(pongPaused){
+
+drawPongPaused();
+
+return;
+}
+
+updatePongSpeed();
+updatePongFlicker();
+
+unsigned long now=millis();
+
+if(
+now-pongLastPaddleMove&gt;=
+pongPaddleSpeed
+){
+
+pongLastPaddleMove=now;
+
+readPongJoystick();
+
+}
+
+if(
+now-pongLastMove&gt;=
+pongGameSpeed
+){
+
+pongLastMove=now;
+
+movePongBall();
+
+pongBallVisible=true;
+
+pongLastFlicker=millis();
+
+}
+
+drawPong();
+}
+
+// ============================================================
+// PONG PAUSED
+// ============================================================
+void drawPongPaused(){
+
+matrix.clearDisplay(0);
+
+for(int row=2;row&lt;=5;row++){
+
+pongLed(row,2,true);
+pongLed(row,5,true);
+
+}
+}
+
+// ============================================================
+// PONG SPEED
+// ============================================================
+void updatePongSpeed(){
+
+int v=analogRead(JOY_Y);
+
+int center=joystickCenterY;
+int deadzone=JOYSTICK_DEADZONE;
+
+int baseSpeed;
+
+if(
+abs(v-center)&lt;=deadzone
+){
+
+baseSpeed=350;
+
+}else if(
+v&gt;center+deadzone
+){
+
+baseSpeed=map(
+v,
+center+deadzone,
+1023,
+350,
+120
+);
+
+}else{
+
+baseSpeed=map(
+v,
+0,
+center-deadzone,
+550,
+350
+);
+
+}
+
+pongGameSpeed=
+baseSpeed-pongSpeedBoost;
+
+if(pongGameSpeed&lt;70)
+pongGameSpeed=70;
+}
+
+// ============================================================
+// PONG FLICKER
+// ============================================================
+void updatePongFlicker(){
+
+pongFlickerRate=map(
+pongGameSpeed,
+70,
+550,
+35,
+140
+);
+
+if(pongFlickerRate&lt;35)
+pongFlickerRate=35;
+
+if(pongFlickerRate&gt;140)
+pongFlickerRate=140;
+
+if(
+millis()-pongLastFlicker&gt;=
+pongFlickerRate
+){
+
+pongLastFlicker=millis();
+
+pongBallVisible=
+!pongBallVisible;
+
+}
+}
+
+// ============================================================
+// PONG JOYSTICK
+// ============================================================
+void readPongJoystick(){
+
+int x=analogRead(JOY_X);
+
+if(
+x&gt;
+joystickCenterX+
+JOYSTICK_DEADZONE
+){
+
+if(pongPlayerPos&lt;6)
+pongPlayerPos++;
+
+}else if(
+x&lt;
+joystickCenterX-
+JOYSTICK_DEADZONE
+){
+
+if(pongPlayerPos&gt;0)
+pongPlayerPos--;
+
+}
+}
+
+// ============================================================
+// PONG SPEED BOOST
+// ============================================================
+void pongPaddleHitSpeedBoost(){
+
+if(random(3)==0){
+
+pongSpeedBoost+=20;
+
+if(pongSpeedBoost&gt;200)
+pongSpeedBoost=200;
+
+tone(
+BUZZER,
+1400,
+35
+);
+
+}
+}
+
+// ============================================================
+// PONG BALL MOVEMENT
+// ============================================================
+void movePongBall(){
+
+int nextX=
+pongBallX+
+pongBallDirX;
+
+int nextY=
+pongBallY+
+pongBallDirY;
+
+// TOP/BOTTOM WALL
+if(nextY&lt;0){
+
+pongBallDirY=1;
+nextY=1;
+
+tone(
+BUZZER,
+700,
+30
+);
+
+}
+
+if(nextY&gt;7){
+
+pongBallDirY=-1;
+nextY=6;
+
+tone(
+BUZZER,
+700,
+30
+);
+
+}
+
+// ============================================================
+// PLAYER PADDLE
+// ============================================================
+if(
+pongBallDirX&lt;0 &amp;&amp;
+pongBallX&gt;0 &amp;&amp;
+nextX&lt;=0
+){
+
+bool hit=
+(
+pongBallY&gt;=pongPlayerPos &amp;&amp;
+pongBallY&lt;=pongPlayerPos+1
+)
+||
+(
+nextY&gt;=pongPlayerPos &amp;&amp;
+nextY&lt;=pongPlayerPos+1
+);
+
+if(hit){
+
+pongBallDirX=1;
+
+pongPaddleHitSpeedBoost();
+
+gameScore++;
+
+updateScoreDisplay();
+
+if(nextY&lt;=pongPlayerPos)
+pongBallDirY=-1;
+
+else if(
+nextY&gt;=pongPlayerPos+1
+)
+pongBallDirY=1;
+
+// RANDOM DEFLECTION
+if(random(4)==0){
+
+pongBallDirY=
+random(0,2)==0?-1:1;
+
+}
+
+nextX=1;
+
+tone(
+BUZZER,
+1000,
+50
+);
+
+}else{
+
+losePongHeart();
+
+resetPongBall();
+
+return;
+
+}
+}
+
+// ============================================================
+// OPPOSITE WALL
+// ============================================================
+if(
+pongBallDirX&gt;0 &amp;&amp;
+pongBallX&lt;7 &amp;&amp;
+nextX&gt;=7
+){
+
+tone(
+BUZZER,
+1200,
+60
+);
+
+pongBallDirX=-1;
+
+nextX=6;
+
+}
+
+pongBallX=nextX;
+pongBallY=nextY;
+}
+
+// ============================================================
+// PONG DRAW
+// ============================================================
+void drawPong(){
+
+matrix.clearDisplay(0);
+
+pongLed(
+pongPlayerPos,
+0,
+true
+);
+
+pongLed(
+pongPlayerPos+1,
+0,
+true
+);
+
+if(pongBallVisible){
+
+pongLed(
+pongBallY,
+pongBallX,
+true
+);
+
+}
+}
+
+// ============================================================
+// PONG RESET BALL
+// ============================================================
+void resetPongBall(){
+
+pongBallX=3;
+pongBallY=3;
+
+pongPlayerPos=3;
+
+pongBallDirX=-1;
+
+pongBallDirY=
+random(0,2)==0?-1:1;
+
+pongBallVisible=true;
+
+pongLastFlicker=millis();
+pongLastMove=millis();
+
+delay(300);
+}
+
+// ============================================================
+// PONG HEARTS
+// ============================================================
+void updatePongHearts(){
+
+digitalWrite(
+HEART1,
+pongHearts&gt;=1?HIGH:LOW
+);
+
+digitalWrite(
+HEART2,
+pongHearts&gt;=2?HIGH:LOW
+);
+
+digitalWrite(
+HEART3,
+pongHearts&gt;=3?HIGH:LOW
+);
+}
+
+void losePongHeart(){
+
+if(pongHearts&lt;=0)
+return;
+
+pongHearts--;
+
+updatePongHearts();
+
+tone(
+BUZZER,
+250,
+250
+);
+
+if(pongHearts==0)
+pongGameOver=true;
+}
+
+// ============================================================
+// HEART DRAW
+// 90 DEGREE CLOCKWISE FROM CURRENT VERSION
+// ============================================================
+void drawHeartRotated(byte heart[8]){
+
+matrix.clearDisplay(0);
+
+for(int row=0;row&lt;8;row++){
+
+for(int col=0;col&lt;8;col++){
+
+if(
+bitRead(
+heart[row],
+7-col
+)
+){
+
+// 90 degree clockwise rotation
+int physicalRow=col;
+int physicalCol=7-row;
+
+matrix.setLed(
+0,
+physicalRow,
+physicalCol,
+true
+);
+
+}
+
+}
+}
+}
+
+// ============================================================
+// FAST HEART BREAKING ANIMATION
+// ============================================================
+void showHeartBreakingAnimation(){
+
+byte heart1[8]={
+B00011000,
+B00111100,
+B01111110,
+B11111111,
+B11111111,
+B11111111,
+B01100110,
+B00000000
+};
+
+byte heart2[8]={
+B00011000,
+B00111100,
+B01111110,
+B11111011,
+B11110111,
+B11111111,
+B01100110,
+B00000000
+};
+
+byte heart3[8]={
+B00000000,
+B00100100,
+B01100110,
+B11010001,
+B11100011,
+B11110111,
+B01100110,
+B00000000
+};
+
+byte heartLeft[8]={
+B00000000,
+B00100000,
+B01100000,
+B11000000,
+B11100000,
+B11110000,
+B01100000,
+B00000000
+};
+
+byte heartRight[8]={
+B00000000,
+B00000100,
+B00000110,
+B00000011,
+B00000111,
+B00001111,
+B00000110,
+B00000000
+};
+
+// WHOLE HEART
+drawHeartRotated(heart1);
+
+tone(
+BUZZER,
+900,
+80
+);
+
+delay(180);
+
+// CRACK 1
+drawHeartRotated(heart2);
+
+tone(
+BUZZER,
+700,
+70
+);
+
+delay(120);
+
+// CRACK 2
+drawHeartRotated(heart3);
+
+tone(
+BUZZER,
+500,
+90
+);
+
+delay(120);
+
+// BREAK APART
+for(int i=0;i&lt;5;i++){
+
+matrix.clearDisplay(0);
+
+// LEFT PIECE
+for(int row=0;row&lt;8;row++){
+
+for(int col=0;col&lt;8;col++){
+
+if(
+bitRead(
+heartLeft[row],
+7-col
+)
+){
+
+int newCol=col-i;
+
+if(newCol&gt;=0){
+
+int physicalRow=newCol;
+int physicalCol=7-row;
+
+matrix.setLed(
+0,
+physicalRow,
+physicalCol,
+true
+);
+
+}
+
+}
+}
+}
+
+// RIGHT PIECE
+for(int row=0;row&lt;8;row++){
+
+for(int col=0;col&lt;8;col++){
+
+if(
+bitRead(
+heartRight[row],
+7-col
+)
+){
+
+int newCol=col+i;
+
+if(newCol&lt;=7){
+
+int physicalRow=newCol;
+int physicalCol=7-row;
+
+matrix.setLed(
+0,
+physicalRow,
+physicalCol,
+true
+);
+
+}
+
+}
+}
+}
+
+tone(
+BUZZER,
+350-i*40,
+50
+);
+
+delay(70);
+
+}
+
+matrix.clearDisplay(0);
+
+delay(150);
+}
+
+// ============================================================
+// MATRIX FONT
+// ============================================================
+const byte FONT_S[5]={
+B01111,
+B10000,
+B01110,
+B00001,
+B11110
+};
+
+const byte FONT_C[5]={
+B01110,
+B10001,
+B10000,
+B10001,
+B01110
+};
+
+const byte FONT_O[5]={
+B01110,
+B10001,
+B10001,
+B10001,
+B01110
+};
+
+const byte FONT_R[5]={
+B11110,
+B10001,
+B11110,
+B10100,
+B10010
+};
+
+const byte FONT_E[5]={
+B11111,
+B10000,
+B11110,
+B10000,
+B11111
+};
+
+const byte FONT_COLON[5]={
+B00000,
+B00100,
+B00000,
+B00100,
+B00000
+};
+
+const byte FONT_0[5]={
+B01110,
+B10001,
+B10011,
+B10101,
+B01110
+};
+
+const byte FONT_1[5]={
+B00100,
+B01100,
+B00100,
+B00100,
+B01110
+};
+
+const byte FONT_2[5]={
+B01110,
+B00001,
+B00110,
+B01000,
+B11111
+};
+
+const byte FONT_3[5]={
+B11110,
+B00001,
+B00110,
+B00001,
+B11110
+};
+
+const byte FONT_4[5]={
+B00010,
+B00110,
+B01010,
+B11111,
+B00010
+};
+
+const byte FONT_5[5]={
+B11111,
+B10000,
+B11110,
+B00001,
+B11110
+};
+
+const byte FONT_6[5]={
+B01110,
+B10000,
+B11110,
+B10001,
+B01110
+};
+
+const byte FONT_7[5]={
+B11111,
+B00001,
+B00010,
+B00100,
+B00100
+};
+
+const byte FONT_8[5]={
+B01110,
+B10001,
+B01110,
+B10001,
+B01110
+};
+
+const byte FONT_9[5]={
+B01110,
+B10001,
+B01111,
+B00001,
+B01110
+};
+
+// ============================================================
+// DRAW SCROLL CHARACTER
+// KEEPING YOUR PERFECT SCROLLING ORIENTATION
+// ============================================================
+void drawScrollChar(
+const byte font[5],
+int x
+){
+
+for(int row=0;row&lt;5;row++){
+
+for(int bit=0;bit&lt;5;bit++){
+
+if(
+font[row] &amp;
+(1&lt;&lt;(4-bit))
+){
+
+int col=x+bit;
+
+if(col&gt;=0&amp;&amp;col&lt;8){
+
+int physicalRow=7-col;
+int physicalCol=row+1;
+
+matrix.setLed(
+0,
+physicalRow,
+physicalCol,
+true
+);
+
+}
+
+}
+}
+}
+}
+
+// ============================================================
+// SCROLL SCORE
+// ============================================================
+void scrollScore(){
+
+const byte* text[6]={
+FONT_S,
+FONT_C,
+FONT_O,
+FONT_R,
+FONT_E,
+FONT_COLON
+};
+
+// SCORE:
+for(int pos=8;pos&gt;-31;pos--){
+
+matrix.clearDisplay(0);
+
+for(int i=0;i&lt;6;i++){
+
+drawScrollChar(
+text[i],
+pos+i*6
+);
+
+}
+
+delay(45);
+}
+
+delay(80);
+
+// SCORE NUMBER
+char scoreText[8];
+
+itoa(
+gameScore,
+scoreText,
+10
+);
+
+int len=strlen(scoreText);
+
+for(
+int pos=8;
+pos&gt;-(len*6);
+pos--
+){
+
+matrix.clearDisplay(0);
+
+for(int i=0;i&lt;len;i++){
+
+const byte* font;
+
+switch(scoreText[i]){
+
+case '0':font=FONT_0;break;
+case '1':font=FONT_1;break;
+case '2':font=FONT_2;break;
+case '3':font=FONT_3;break;
+case '4':font=FONT_4;break;
+case '5':font=FONT_5;break;
+case '6':font=FONT_6;break;
+case '7':font=FONT_7;break;
+case '8':font=FONT_8;break;
+case '9':font=FONT_9;break;
+default:continue;
+
+}
+
+drawScrollChar(
+font,
+pos+i*6
+);
+
+}
+
+delay(45);
+}
+
+matrix.clearDisplay(0);
+
+display.showNumberDec(
+gameScore,
+false
+);
+
+delay(500);
+}
+
+// ============================================================
+// PONG GAME OVER
+// ============================================================
+void showPongGameOver(){
+
+showHeartBreakingAnimation();
+
+scrollScore();
+
+gameScore=0;
+
+startPong();
+}
+
+// ============================================================
+// SNAKE
+// ============================================================
+struct Point{
+int row;
+int col;
+};
+
+Point snakeBody[64];
+Point snakeFood;
+
+int snakeLength=3;
+int snakeDirection=RIGHT;
+int snakeHearts=3;
+
+int snakeSpeedLevel=1;
+
+const int SNAKE_BASE_SPEED=120;
+const int SNAKE_SPEED_STEP=10;
+const int SNAKE_MAX_SPEED_LEVEL=10;
+
+unsigned long snakeMoveInterval=
+SNAKE_BASE_SPEED;
+
+unsigned long snakeLastMove=0;
+
+bool snakePaused=false;
+
+bool lastSnakeSpeedButton=HIGH;
+
+// ============================================================
+// SNAKE START
+// ============================================================
+void startSnake(){
+
+matrix.clearDisplay(0);
+
+snakeLength=3;
+snakeHearts=3;
+
+snakeSpeedLevel=1;
+
+snakePaused=false;
+
+updateSnakeSpeed();
+updateSnakeHearts();
+
+snakeDirection=RIGHT;
+
+int startRow=random(2,6);
+int startCol=random(2,6);
+
+snakeBody[0]={
+startRow,
+startCol
+};
+
+snakeBody[1]={
+startRow,
+startCol-1
+};
+
+snakeBody[2]={
+startRow,
+startCol-2
+};
+
+spawnSnakeFood();
+
+updateScoreDisplay();
+
+snakeLastMove=millis();
+
+lastSnakeSpeedButton=
+digitalRead(
+SPEED_BUTTON
+);
+
+drawSnake();
+}
+
+// ============================================================
+// SNAKE UPDATE
+// ============================================================
+void updateSnake(){
+
+if(snakePaused){
+
+drawSnakePaused();
+
+return;
+}
+
+handleSnakeSpeedButton();
+
+readSnakeJoystick();
+
+if(
+millis()-snakeLastMove&gt;=
+snakeMoveInterval
+){
+
+snakeLastMove=millis();
+
+moveSnake();
+
+}
+
+drawSnake();
+}
+
+// ============================================================
+// SNAKE PAUSED
+// ============================================================
+void drawSnakePaused(){
+
+matrix.clearDisplay(0);
+
+for(int row=2;row&lt;=5;row++){
+
+matrix.setLed(
+0,
+row,
+2,
+true
+);
+
+matrix.setLed(
+0,
+row,
+5,
+true
+);
+
+}
+}
+
+// ============================================================
+// SNAKE JOYSTICK
+// ============================================================
+void readSnakeJoystick(){
+
+int x=analogRead(JOY_X);
+int y=analogRead(JOY_Y);
+
+int previousDirection=
+snakeDirection;
+
+// X INVERTED
+if(
+x&lt;
+joystickCenterX-
+JOYSTICK_DEADZONE
+){
+
+snakeDirection=DOWN;
+
+}
+
+if(
+x&gt;
+joystickCenterX+
+JOYSTICK_DEADZONE
+){
+
+snakeDirection=UP;
+
+}
+
+// Y NORMAL
+if(
+y&lt;
+joystickCenterY-
+JOYSTICK_DEADZONE
+){
+
+snakeDirection=LEFT;
+
+}
+
+if(
+y&gt;
+joystickCenterY+
+JOYSTICK_DEADZONE
+){
+
+snakeDirection=RIGHT;
+
+}
+
+// NO 180 DEGREE TURN
+if(
+snakeDirection==UP &amp;&amp;
+previousDirection==DOWN
+)
+snakeDirection=
+previousDirection;
+
+if(
+snakeDirection==DOWN &amp;&amp;
+previousDirection==UP
+)
+snakeDirection=
+previousDirection;
+
+if(
+snakeDirection==LEFT &amp;&amp;
+previousDirection==RIGHT
+)
+snakeDirection=
+previousDirection;
+
+if(
+snakeDirection==RIGHT &amp;&amp;
+previousDirection==LEFT
+)
+snakeDirection=
+previousDirection;
+}
+
+// ============================================================
+// SNAKE SPEED BUTTON
+// ============================================================
+void handleSnakeSpeedButton(){
+
+bool button=
+digitalRead(
+SPEED_BUTTON
+);
+
+if(
+lastSnakeSpeedButton==HIGH &amp;&amp;
+button==LOW
+){
+
+snakeSpeedLevel++;
+
+if(
+snakeSpeedLevel&gt;
+SNAKE_MAX_SPEED_LEVEL
+)
+snakeSpeedLevel=1;
+
+updateSnakeSpeed();
+
+tone(
+BUZZER,
+900+
+snakeSpeedLevel*70,
+50
+);
+
+delay(80);
+
+}
+
+lastSnakeSpeedButton=button;
+}
+
+// ============================================================
+// SNAKE SPEED
+// ============================================================
+void updateSnakeSpeed(){
+
+snakeMoveInterval=
+SNAKE_BASE_SPEED-
+(
+(snakeSpeedLevel-1)*
+SNAKE_SPEED_STEP
+);
+
+if(snakeMoveInterval&lt;30)
+snakeMoveInterval=30;
+}
+
+// ============================================================
+// SNAKE FOOD
+// ============================================================
+void spawnSnakeFood(){
+
+bool valid=false;
+
+while(!valid){
+
+snakeFood.row=
+random(0,8);
+
+snakeFood.col=
+random(0,8);
+
+valid=true;
+
+for(
+int i=0;
+i&lt;snakeLength;
+i++
+){
+
+if(
+snakeBody[i].row==
+snakeFood.row &amp;&amp;
+snakeBody[i].col==
+snakeFood.col
+){
+
+valid=false;
+
+break;
+
+}
+}
+}
+}
+
+// ============================================================
+// SNAKE MOVEMENT
+// ============================================================
+void moveSnake(){
+
+Point newHead=
+snakeBody[0];
+
+if(snakeDirection==UP)
+newHead.row--;
+
+if(snakeDirection==DOWN)
+newHead.row++;
+
+if(snakeDirection==LEFT)
+newHead.col--;
+
+if(snakeDirection==RIGHT)
+newHead.col++;
+
+// WRAP
+if(newHead.row&lt;0)
+newHead.row=7;
+
+if(newHead.row&gt;7)
+newHead.row=0;
+
+if(newHead.col&lt;0)
+newHead.col=7;
+
+if(newHead.col&gt;7)
+newHead.col=0;
+
+// COLLISION
+for(
+int i=0;
+i&lt;snakeLength;
+i++
+){
+
+if(
+snakeBody[i].row==
+newHead.row &amp;&amp;
+snakeBody[i].col==
+newHead.col
+){
+
+loseSnakeHeart();
+
+if(snakeHearts&lt;=0){
+
+showSnakeGameOver();
+
+return;
+
+}
+
+resetSnake();
+
+return;
+
+}
+}
+
+// FOOD
+bool ateFood=
+newHead.row==
+snakeFood.row &amp;&amp;
+newHead.col==
+snakeFood.col;
+
+if(ateFood){
+
+if(snakeLength&lt;64)
+snakeLength++;
+
+gameScore++;
+
+updateScoreDisplay();
+
+tone(
+BUZZER,
+1200,
+40
+);
+
+spawnSnakeFood();
+}
+
+// MOVE BODY
+for(
+int i=snakeLength-1;
+i&gt;0;
+i--
+){
+
+snakeBody[i]=
+snakeBody[i-1];
+
+}
+
+snakeBody[0]=newHead;
+}
+
+// ============================================================
+// SNAKE RESET
+// ============================================================
+void resetSnake(){
+
+matrix.clearDisplay(0);
+
+snakeLength=3;
+
+snakeDirection=RIGHT;
+
+int startRow=random(2,6);
+int startCol=random(2,6);
+
+snakeBody[0]={
+startRow,
+startCol
+};
+
+snakeBody[1]={
+startRow,
+startCol-1
+};
+
+snakeBody[2]={
+startRow,
+startCol-2
+};
+
+spawnSnakeFood();
+
+snakeLastMove=millis();
+
+delay(300);
+}
+
+// ============================================================
+// SNAKE HEARTS
+// ============================================================
+void updateSnakeHearts(){
+
+digitalWrite(
+HEART1,
+snakeHearts&gt;=1?HIGH:LOW
+);
+
+digitalWrite(
+HEART2,
+snakeHearts&gt;=2?HIGH:LOW
+);
+
+digitalWrite(
+HEART3,
+snakeHearts&gt;=3?HIGH:LOW
+);
+}
+
+void loseSnakeHeart(){
+
+if(snakeHearts&gt;0)
+snakeHearts--;
+
+updateSnakeHearts();
+
+for(int n=0;n&lt;2;n++){
+
+for(int row=0;row&lt;8;row++){
+
+for(int col=0;col&lt;8;col++){
+
+matrix.setLed(
+0,
+row,
+col,
+true
+);
+
+}
+}
+
+tone(
+BUZZER,
+300,
+60
+);
+
+delay(80);
+
+matrix.clearDisplay(0);
+
+delay(80);
+}
+}
+</pre>
+      </div>
+    </section>
+
+    <!-- 16 WHY PHYSICS -->
+    <section id="whyphysics">
+      <div class="eyebrow reveal">16 · WHY THIS IS PHYSICS</div>
+      <h2 class="section-title reveal">A Computational Model, Not a Simulation</h2>
+      <p class="lede reveal">The project uses simplified physics concepts rather than realistic physical simulation: position, velocity, direction, time, reflection, collision, vector-like movement and discrete coordinate systems.</p>
+
+      <div class="pipeline reveal">
+        <span class="pipe-node">REAL WORLD PHYSICS</span><span class="pipe-arrow">↓</span>
+      </div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">SIMPLIFIED MATHEMATICAL MODEL</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">GAME RULES</span><span class="pipe-arrow">↓</span></div>
+      <div class="pipeline reveal" style="margin-top:6px;"><span class="pipe-node">VISUAL RESULT</span></div>
+    </section>
+
+    <!-- 17 WHY MATH -->
+    <section id="whymath">
+      <div class="eyebrow reveal">17 · WHY THIS IS MATHEMATICS</div>
+      <h2 class="section-title reveal">Continuous Numerical Operation</h2>
+      <p class="lede reveal">The game continuously performs mathematical operations: coordinate updates, comparisons, thresholds, velocity changes, timing calculations, random number generation, grid positions and score counters.</p>
+
+      <div class="card reveal" style="max-width:520px; text-align:center;">
+        <h3>INPUT VALUES + MATHEMATICAL RULES + CONDITIONS</h3>
+        <p style="margin-top:10px; color:var(--gold); font-family:var(--mono);">↓</p>
+        <h3 style="margin-top:6px;">GAME BEHAVIOUR</h3>
+      </div>
+    </section>
+
+    <!-- 18 SUMMARY -->
+    <section id="summary">
+      <div class="eyebrow reveal">18 · PROJECT SUMMARY</div>
+      <h2 class="section-title reveal">Electronics, Programming, Mathematics, Physics</h2>
+      <p class="lede reveal">This project combines electronics, programming, mathematics and simplified physics into one embedded gaming system.</p>
+
+      <div class="grid grid-4 reveal">
+        <div class="card summary-card"><h3>ELECTRONICS</h3><p>Arduino + sensors + displays</p></div>
+        <div class="card summary-card"><h3>MATHEMATICS</h3><p>Coordinates + vectors + timing</p></div>
+        <div class="card summary-card"><h3>PHYSICS</h3><p>Velocity + collision + reflection</p></div>
+        <div class="card summary-card"><h3>PROGRAMMING</h3><p>Game states + algorithms + rendering</p></div>
+      </div>
+    </section>
+
+    <footer id="credits">
+      CREDIT
+      <br>
+      <a class="credit-link" href="https://youtube.com/@crusaderly?si=eKzBpiHAS_3RirDY" target="_blank" rel="noopener">
+        <span class="play-icon">▶</span> @crusader · Watch on YouTube
+      </a>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ============================================================
+  // SOUND ENGINE
+  // Single shared AudioContext, created lazily on first user
+  // interaction (autoplay-safe). All sounds are short oscillator
+  // envelopes, no audio files, no external libraries.
+  // ============================================================
+  var audioCtx = null;
+  var masterGain = null;
+  var soundEnabled = true;
+
+  // Lazily create (or resume) the shared AudioContext.
+  // Only ever called from inside a user-gesture event handler.
+  function getAudioContext() {
+    if (!soundEnabled) return null;
+
+    try {
+      if (!audioCtx) {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null; // Web Audio unsupported, fail silently
+
+        audioCtx = new Ctx();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.18; // keep everything quiet and non-intrusive
+        masterGain.connect(audioCtx.destination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    } catch (e) {
+      return null; // sound is a nice-to-have, never block the page
+    }
+  }
+
+  // Core building block: one oscillator, one gain envelope.
+  // freq: Hz, duration: seconds, type: oscillator waveform,
+  // startGain: peak volume (0-1), delay: seconds before it starts.
+  function playTone(freq, duration, type, startGain, delay) {
+    var ctx = getAudioContext();
+    if (!ctx) return;
+
+    delay = delay || 0;
+    startGain = startGain == null ? 1 : startGain;
+
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+
+    var t0 = ctx.currentTime + delay;
+
+    gain.gain.setValueAtTime(startGain, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.02);
+
+    // Nodes are automatically garbage-collected once stopped and
+    // disconnected from the graph, no manual cleanup needed.
+    osc.onended = function() {
+      osc.disconnect();
+      gain.disconnect();
+    };
+  }
+
+  // ---------- Reusable named sounds ----------
+  function playClick() {
+    // Short, neutral UI click, square wave, very brief
+    playTone(520, 0.06, 'square', 0.5);
+  }
+
+  function playNavSelect() {
+    // Slightly warmer tick for nav / link selection
+    playTone(660, 0.07, 'sine', 0.5);
+  }
+
+  function playExpand() {
+    // Rising two-note chirp, opening a menu group
+    playTone(420, 0.07, 'triangle', 0.45);
+    playTone(640, 0.08, 'triangle', 0.4, 0.05);
+  }
+
+  function playCollapse() {
+    // Falling two-note chirp, closing a menu group
+    playTone(640, 0.07, 'triangle', 0.45);
+    playTone(420, 0.08, 'triangle', 0.4, 0.05);
+  }
+
+  function playToggleOn() {
+    playTone(500, 0.05, 'square', 0.45);
+    playTone(760, 0.09, 'square', 0.4, 0.05);
+  }
+
+  function playToggleOff() {
+    playTone(760, 0.05, 'square', 0.45);
+    playTone(420, 0.09, 'square', 0.4, 0.05);
+  }
+
+  function playCopy() {
+    // Bright confirmation chime
+    playTone(700, 0.06, 'sine', 0.4);
+    playTone(1050, 0.12, 'sine', 0.4, 0.06);
+  }
+
+  function playMenuOpen() {
+    playTone(480, 0.08, 'sawtooth', 0.3);
+  }
+
+  function playMenuClose() {
+    playTone(320, 0.08, 'sawtooth', 0.3);
+  }
+
+  function playCredit() {
+    // Small friendly flourish for the external channel link
+    playTone(600, 0.06, 'triangle', 0.4);
+    playTone(900, 0.06, 'triangle', 0.35, 0.05);
+    playTone(1200, 0.1, 'triangle', 0.3, 0.1);
+  }
+
+  // ============================================================
+  // Sound On/Off control
+  // ============================================================
+  var soundBtn = document.getElementById('soundToggle');
+  soundBtn.addEventListener('click', function() {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+    if (soundEnabled) playToggleOn(); // audible confirmation only when turning on
+  });
+
+  // ---------- Theme toggle ----------
+  var themeBtn = document.getElementById('themeToggle');
+  themeBtn.addEventListener('click', function() {
+    document.body.classList.toggle('light');
+    var isLight = document.body.classList.contains('light');
+    themeBtn.textContent = isLight
+      ? '● TOGGLE DARK MODE'
+      : '☀ TOGGLE ILLUMINATED MODE';
+    if (isLight) { playToggleOn(); } else { playToggleOff(); }
+  });
+
+  // ---------- Mobile nav ----------
+  var sidebar = document.getElementById('sidebar');
+  var burger = document.getElementById('burger');
+  var overlay = document.getElementById('navOverlay');
+
+  function closeNav() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+  burger.addEventListener('click', function() {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    playMenuOpen();
+  });
+  overlay.addEventListener('click', function() {
+    closeNav();
+    playMenuClose();
+  });
+  document.querySelectorAll('#navlist a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      playNavSelect();
+      closeNav();
+    });
+  });
+
+  // ---------- Scroll reveal (IntersectionObserver, disconnect when done) ----------
+  var revealEls = document.querySelectorAll('.reveal');
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        revealObserver.unobserve(entry.target); // stop observing once revealed, avoids leaks
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(function(el) { revealObserver.observe(el); });
+
+  // ---------- Expand / collapse nav groups ----------
+  var navGroups = document.querySelectorAll('[data-group]');
+  navGroups.forEach(function(group) {
+    var btn = group.querySelector('.nav-expand-toggle');
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      var opening = !group.classList.contains('open');
+      group.classList.toggle('open');
+      if (opening) { playExpand(); } else { playCollapse(); }
+    });
+  });
+
+  // ---------- Scroll-spy nav highlight ----------
+  var navLinks = document.querySelectorAll('#navlist a[data-nav]');
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main section, main header'));
+  var linkMap = {};
+  navLinks.forEach(function(link) {
+    var href = link.getAttribute('href').slice(1);
+    if (!linkMap[href]) linkMap[href] = []; // multiple links (parent + subgroup) can share an href
+    linkMap[href].push(link);
+  });
+
+  var spyObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      var id = entry.target.id;
+      if (!id || !linkMap[id]) return;
+      if (entry.isIntersecting) {
+        navLinks.forEach(function(l) { l.classList.remove('active'); });
+        linkMap[id].forEach(function(l) {
+          l.classList.add('active');
+          var parentGroup = l.closest('[data-group]');
+          if (parentGroup) parentGroup.classList.add('open');
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+
+  sections.forEach(function(s) { if (s.id) spyObserver.observe(s); });
+
+  // ---------- Copy code button ----------
+  var copyBtn = document.getElementById('copyBtn');
+  var codeContent = document.getElementById('codeContent');
+  copyBtn.addEventListener('click', function() {
+    playCopy();
+    var text = codeContent.textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        copyBtn.textContent = 'COPIED';
+        setTimeout(function() { copyBtn.textContent = 'COPY CODE'; }, 1500);
+      });
+    }
+  });
+
+  // ---------- Credit link ----------
+  var creditLink = document.querySelector('.credit-link');
+  if (creditLink) {
+    creditLink.addEventListener('click', function() {
+      playCredit();
+    });
+  }
+
+  // ---------- Build grid cell backgrounds (static decoration, no timers) ----------
+  var coordGrid = document.getElementById('coordGrid');
+  for (var i = 0; i < 64; i++) {
+    var cell = document.createElement('div');
+    cell.className = 'cell';
+    coordGrid.appendChild(cell);
+  }
+
+  var snakeGrid = document.getElementById('snakeGrid');
+  for (var j = 0; j < 60; j++) {
+    var sc = document.createElement('div');
+    sc.className = 'snake-cell';
+    snakeGrid.appendChild(sc);
+  }
+
+  // Snake body segments, pure CSS-driven positions, no JS animation loop
+  var segPositions = [
+    [10,10],[37,10],[64,10],[64,37],[64,64],[91,64],[118,64],[145,64],[145,91]
+  ];
+  segPositions.forEach(function(pos, idx) {
+    var seg = document.createElement('div');
+    seg.className = 'snake-seg';
+    seg.style.left = pos[0] + 'px';
+    seg.style.top = pos[1] + 'px';
+    seg.style.opacity = (1 - idx * 0.08).toFixed(2);
+    snakeGrid.appendChild(seg);
+  });
+
+  // ---------- Cleanup on page hide (defensive, avoids leaks if embedded/reloaded) ----------
+  window.addEventListener('pagehide', function() {
+    revealObserver.disconnect();
+    spyObserver.disconnect();
+    if (audioCtx) {
+      audioCtx.close();
+      audioCtx = null;
+    }
+  });
+})();
+</script>
+</body>
+</html>
+
