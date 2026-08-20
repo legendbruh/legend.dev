@@ -292,7 +292,15 @@ section{
   width:100%;
   height:100%;
   object-fit:cover;
+  object-position:center center;
   display:none;
+}
+
+/* Phones are much taller than wide, so cover crops the video into a thin
+   strip. A slight center zoom fills the frame better, cropping the sides
+   a bit more instead of stretching the subject thin. */
+@media (max-width: 640px){
+  .bg-video{ transform:scale(1.35); transform-origin:center center; }
 }
 
 .util-btn{
