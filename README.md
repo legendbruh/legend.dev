@@ -32,9 +32,10 @@ Sometimes it's electronics.
 Sometimes it's something completely unnecessary that I just *had to see if I could make.*
 
  **Current philosophy**
-
+look at this formatting wooow...
 > "What I cannot create, I do not understand."
 > — Richard Feynman
+
 
 I like projects that start with:
 
