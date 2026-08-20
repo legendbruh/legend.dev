@@ -45,7 +45,7 @@ Then I try to make it possible.
 
 Welcome to the experiments.
 HTML / CSS / JAVASCRIPT INTERACTIVE WEBSITE MASTER INVENTORY
-
+i want to use all these later....↓
 VISUAL ELEMENTS
 - Text
 - Headings
