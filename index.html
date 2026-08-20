@@ -844,6 +844,220 @@ section{
 @media (prefers-reduced-motion: reduce){ .empty-state .blink{ animation:none; } }
 
 /* ============================================================
+   PROJECT COVERFLOW CAROUSEL
+   ============================================================ */
+.p-wrap{ position:relative; margin-top:56px; }
+
+.p-auto-toggle{
+  position:absolute;
+  top:-46px; right:0;
+  font-family:var(--font-mono);
+  font-size:10.5px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--text-secondary);
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--line-strong);
+  padding:8px 14px;
+  cursor:pointer;
+  transition:color .25s var(--ease), border-color .25s var(--ease);
+}
+.p-auto-toggle[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent-soft); }
+.p-auto-toggle .dot{
+  display:inline-block; width:6px; height:6px; border-radius:50%;
+  background:var(--text-tertiary); margin-right:8px;
+}
+.p-auto-toggle[aria-pressed="true"] .dot{ background:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+
+.p-stage{
+  position:relative;
+  height:min(64vh, 520px);
+  perspective:1600px;
+  touch-action:pan-y;
+  cursor:grab;
+}
+.p-stage:active{ cursor:grabbing; }
+
+.p-track{ position:relative; width:100%; height:100%; }
+
+.p-card{
+  position:absolute;
+  top:50%; left:50%;
+  width:270px;
+  height:430px;
+  margin:-215px 0 0 -135px;
+  border:1px solid var(--line-strong);
+  background:linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.008));
+  box-shadow:0 30px 60px -24px rgba(0,0,0,0.7);
+  overflow:hidden;
+  transition:transform .65s var(--ease), opacity .65s var(--ease), filter .65s var(--ease), border-color .3s var(--ease);
+  will-change:transform;
+  cursor:pointer;
+}
+.p-card.is-active{ border-color:var(--accent-soft); }
+.p-card.is-active:hover{ border-color:var(--accent); }
+
+.p-cover{
+  height:52%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+.p-cover::after{
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, transparent 35%, var(--void) 100%);
+}
+.p-glyph{
+  font-size:68px;
+  line-height:1;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 0 16px rgba(216,184,114,0.3));
+  position:relative;
+  z-index:1;
+}
+
+.p-body{ padding:16px 18px 18px 18px; text-align:left; }
+.p-status{
+  font-family:var(--font-mono);
+  font-size:9.5px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--accent);
+  display:block;
+  margin-bottom:6px;
+}
+.p-card h3{
+  font-family:var(--font-display);
+  font-size:16.5px;
+  font-weight:600;
+  margin:0 0 6px 0;
+  color:var(--text-primary);
+  line-height:1.25;
+}
+.p-card:not(.is-active) h3{ font-size:14px; }
+.p-desc{
+  font-size:11.5px;
+  line-height:1.55;
+  color:var(--text-secondary);
+  margin:0 0 10px 0;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.p-card .tag-row{
+  opacity:0;
+  max-height:0;
+  overflow:hidden;
+  transition:opacity .4s var(--ease);
+  margin-bottom:0;
+}
+.p-card.is-active .tag-row{ opacity:1; max-height:60px; margin-bottom:0; }
+.p-card .tag{ font-size:9px; padding:3px 7px; }
+
+/* ============================================================
+   PROJECT CAROUSEL CONTROLS
+   ============================================================ */
+.p-controls{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  max-width:560px;
+  margin:120px auto 0 auto;
+}
+.p-cta-row{
+  display:flex;
+  justify-content:center;
+  margin-top:26px;
+}
+.p-cta{ padding:11px 22px; font-size:11px; }
+.p-cta.is-pending{
+  background:rgba(255,255,255,0.06);
+  color:var(--text-tertiary);
+  box-shadow:none;
+  pointer-events:none;
+}
+.arrow-btn{
+  flex:0 0 auto;
+  width:40px; height:40px;
+  border-radius:50%;
+  border:1px solid var(--line-strong);
+  background:rgba(255,255,255,0.02);
+  color:var(--text-primary);
+  font-size:18px;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color .25s var(--ease), color .25s var(--ease), transform .15s var(--ease);
+}
+.arrow-btn:hover{ border-color:var(--accent-soft); color:var(--accent); transform:translateY(-1px); }
+
+.p-slider-wrap{ flex:1; position:relative; touch-action:none; }
+
+#p-slider{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:3px;
+  border-radius:99px;
+  background:linear-gradient(90deg, var(--line-strong), var(--accent-soft));
+  outline:none;
+  cursor:pointer;
+  touch-action:none;
+}
+#p-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px; height:18px;
+  border-radius:50%;
+  background:var(--void);
+  border:2px solid var(--accent);
+  box-shadow:0 0 12px var(--accent-glow);
+  cursor:pointer;
+  transition:transform .15s var(--ease);
+}
+#p-slider::-webkit-slider-thumb:hover{ transform:scale(1.15); }
+#p-slider::-moz-range-thumb{
+  width:18px; height:18px;
+  border-radius:50%;
+  background:var(--void);
+  border:2px solid var(--accent);
+  box-shadow:0 0 12px var(--accent-glow);
+  cursor:pointer;
+}
+
+.p-ticks{ display:flex; justify-content:space-between; margin-top:10px; padding:0 2px; }
+.p-ticks span{
+  width:5px; height:5px;
+  border-radius:50%;
+  background:var(--text-tertiary);
+  transition:background .3s var(--ease), box-shadow .3s var(--ease);
+}
+.p-ticks span.active{ background:var(--accent); box-shadow:0 0 8px var(--accent-glow); }
+
+.p-readout{
+  margin:22px 0 0 0;
+  text-align:center;
+  font-family:var(--font-mono);
+  font-size:12px;
+  letter-spacing:0.1em;
+  color:var(--text-secondary);
+}
+.p-readout .p-idx{ color:var(--accent); }
+.p-readout .p-name{ color:var(--text-primary); margin-left:6px; }
+
+@media (max-width: 640px){
+  .p-stage{ height:min(60vh, 460px); }
+  .p-card{ width:230px; height:390px; margin:-195px 0 0 -115px; }
+  .p-glyph{ font-size:56px; }
+  .p-auto-toggle{ top:-40px; }
+  .p-controls{ margin-top:92px; }
+}
+
+/* ============================================================
    CONTACT
    ============================================================ */
 .contact-panel{
@@ -1143,10 +1357,35 @@ section{
   <section id="projects">
     <div class="eyebrow reveal">03 / Archive</div>
     <h2 class="section-title reveal">Things that got built.</h2>
-    <p class="section-lede reveal">A working record of Minecraft Bedrock projects, built and maintained under the alias Crusaderly. New entries get added as they exist, not before.</p>
+    <p class="section-lede reveal">A working record of Minecraft Bedrock projects, built and maintained under the alias Crusaderly. Drag the stage, slide the control, or tap a card to explore.</p>
 
-    <div class="archive reveal" id="projects-archive">
-      <!-- Records injected by JS from PROJECTS data -->
+    <div class="p-wrap reveal" id="project-carousel">
+      <button class="p-auto-toggle tap-hint" id="p-auto-toggle" type="button" aria-pressed="false">
+        <span class="dot" aria-hidden="true"></span>Auto
+      </button>
+
+      <div class="p-stage" id="p-stage" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Projects">
+        <div class="p-track" id="p-track"></div>
+      </div>
+
+      <div class="p-controls">
+        <button class="arrow-btn" id="p-prev" type="button" aria-label="Previous project">‹</button>
+        <div class="p-slider-wrap">
+          <input type="range" id="p-slider" min="0" max="6" step="1" value="0" aria-label="Select project">
+          <div class="p-ticks" id="p-ticks"></div>
+        </div>
+        <button class="arrow-btn" id="p-next" type="button" aria-label="Next project">›</button>
+      </div>
+
+      <div class="p-cta-row">
+        <a class="rec-link p-cta" id="p-cta" href="#" target="_blank" rel="noopener noreferrer">View Project</a>
+      </div>
+
+      <p class="p-readout">
+        <span class="p-idx" id="p-readout-idx">01</span> / <span id="p-readout-total">07</span>
+        <span class="p-name" id="p-readout-name">CrusadersBedrock</span>
+      </p>
+      <p class="sr-only" id="p-live-region" aria-live="polite"></p>
     </div>
   </section>
 
@@ -1236,6 +1475,7 @@ var HOBBIES = [
 var PROJECTS = [
   {
     id:"P-001",
+    glyph:"✶",
     status:"ACTIVE",
     name:"CrusadersBedrock",
     desc:"The main Bedrock project. Expands survival gameplay with a five season system, grappling hooks, custom redstone blocks, a soul chest death protection system, custom pets, a flying drone, and a full Script API driven gameplay layer, while staying close to Minecraft's core feel.",
@@ -1244,6 +1484,7 @@ var PROJECTS = [
   },
   {
     id:"P-002",
+    glyph:"◈",
     status:"ACTIVE",
     name:"Dimensional Doors!",
     desc:"A custom Skyblock dimension addon. A Trial Key and a wooden door open a portal into a self contained progression space with resource islands, ore islands, and a copper door return system.",
@@ -1252,6 +1493,7 @@ var PROJECTS = [
   },
   {
     id:"P-003",
+    glyph:"⌖",
     status:"ACTIVE",
     name:"PvP Manhunt Bot (MCPE)",
     desc:"An experimental AI hunter that travels across dimensions, navigates and recalculates its path around obstacles, and fights using its own combat logic. A study in autonomous, emergent Bedrock behavior.",
@@ -1260,6 +1502,7 @@ var PROJECTS = [
   },
   {
     id:"P-004",
+    glyph:"✦",
     status:"ACTIVE",
     name:"CrusadersBedrockLite",
     desc:"A lighter version of the Crusader gameplay concept. Keeps the five season system, grappling hooks, and casino style systems, without the full feature set of the main project.",
@@ -1268,6 +1511,7 @@ var PROJECTS = [
   },
   {
     id:"P-005",
+    glyph:"⚗",
     status:"ACTIVE",
     name:"Custom Potions Maker",
     desc:"Lets players build fully customizable potions, combining effects, amplifiers, and durations through a Script UI system, for brews built around combat, mining, exploration, or parkour.",
@@ -1276,6 +1520,7 @@ var PROJECTS = [
   },
   {
     id:"P-006",
+    glyph:"✧",
     status:"ACTIVE",
     name:"Crusaders Reduced Particle Effect",
     desc:"A resource pack that replaces large vanilla spell particles with smaller sparkler style ones. Animated and colour fading, built for cleaner visibility in PvP and survival.",
@@ -1284,6 +1529,7 @@ var PROJECTS = [
   },
   {
     id:"P-007",
+    glyph:"⬡",
     status:"ACTIVE",
     name:"Crusaders Toolbox",
     desc:"A scripting utility for procedural shapes and mass entity manipulation. Summons and arranges entities into spheres, cubes, and torus formations for building complex structures through code.",
@@ -1390,9 +1636,185 @@ function renderArchive(containerId, items, emptyMessage){
   });
 }
 
+/* ============================================================
+   PROJECT COVERFLOW CAROUSEL
+   ============================================================ */
+function initProjectCarousel(){
+  var track = document.getElementById("p-track");
+  var slider = document.getElementById("p-slider");
+  var ticksWrap = document.getElementById("p-ticks");
+  var stage = document.getElementById("p-stage");
+  var readoutIdx = document.getElementById("p-readout-idx");
+  var readoutName = document.getElementById("p-readout-name");
+  var liveRegion = document.getElementById("p-live-region");
+  var prevBtn = document.getElementById("p-prev");
+  var nextBtn = document.getElementById("p-next");
+  var autoToggle = document.getElementById("p-auto-toggle");
+  var ctaBtn = document.getElementById("p-cta");
+
+  var current = 0;
+  var total = PROJECTS.length;
+  var cardEls = [];
+
+  slider.max = String(total - 1);
+  document.getElementById("p-readout-total").textContent = String(total).padStart(2, "0");
+
+  var HUES = [40, 34, 46, 38, 44, 30, 42];
+
+  PROJECTS.forEach(function(p, i){
+    var hue = HUES[i % HUES.length];
+    var card = document.createElement("article");
+    card.className = "p-card";
+    card.tabIndex = -1;
+    card.setAttribute("aria-label", p.name);
+
+    card.innerHTML =
+      '<div class="p-cover" style="background:radial-gradient(120% 120% at 30% 20%, hsla(' + hue + ',75%,68%,0.28), transparent 60%), linear-gradient(150deg, hsla(' + hue + ',55%,32%,0.6), hsla(' + (hue+12) + ',45%,16%,0.5));">' +
+        '<span class="p-glyph" style="background-image:linear-gradient(160deg, #fff, hsl(' + hue + ',70%,72%));">' + p.glyph + '</span>' +
+      '</div>' +
+      '<div class="p-body">' +
+        '<span class="p-status">' + p.status + '</span>' +
+        '<h3>' + p.name + '</h3>' +
+        '<p class="p-desc">' + p.desc + '</p>' +
+        '<div class="tag-row">' + p.tags.map(function(t){ return '<span class="tag">' + t + '</span>'; }).join('') + '</div>' +
+      '</div>';
+
+    card.addEventListener("click", function(){
+      if (i !== current){ goTo(i); }
+    });
+
+    track.appendChild(card);
+    cardEls.push(card);
+  });
+
+  PROJECTS.forEach(function(_, i){
+    var t = document.createElement("span");
+    t.dataset.index = i;
+    ticksWrap.appendChild(t);
+  });
+
+  function getGeometry(){
+    var w = window.innerWidth;
+    if (w < 640) return { spacing:112, depth:170, angle:36, minScale:0.6, maxVisible:3 };
+    if (w < 900) return { spacing:150, depth:220, angle:40, minScale:0.6, maxVisible:3 };
+    return { spacing:190, depth:260, angle:42, minScale:0.58, maxVisible:4 };
+  }
+
+  function render(){
+    var geo = getGeometry();
+    cardEls.forEach(function(card, i){
+      var offset = i - current;
+      var abs = Math.abs(offset);
+      var dir = offset === 0 ? 0 : (offset > 0 ? 1 : -1);
+
+      if (abs > geo.maxVisible){
+        card.style.opacity = "0";
+        card.style.pointerEvents = "none";
+        card.style.transform =
+          "translateX(" + (dir * geo.spacing * geo.maxVisible) + "px) translateZ(" + (-geo.depth * geo.maxVisible) + "px)";
+        card.classList.remove("is-active");
+        return;
+      }
+
+      var scale = Math.max(geo.minScale, 1 - abs * 0.14);
+      var rotate = dir * -geo.angle;
+      var tx = offset * geo.spacing;
+      var tz = -abs * geo.depth;
+      var blur = abs === 0 ? 0 : Math.min(3, abs * 1.2);
+
+      card.style.transform =
+        "translate3d(" + tx + "px, 0, " + tz + "px) rotateY(" + rotate + "deg) scale(" + scale + ")";
+      card.style.opacity = String(Math.max(0.15, 1 - abs * 0.32));
+      card.style.filter = blur ? "blur(" + blur + "px)" : "none";
+      card.style.zIndex = String(100 - abs);
+      card.style.pointerEvents = "auto";
+      card.classList.toggle("is-active", offset === 0);
+      card.setAttribute("aria-hidden", offset === 0 ? "false" : "true");
+    });
+
+    var ticks = ticksWrap.children;
+    for (var i = 0; i < ticks.length; i++){
+      ticks[i].classList.toggle("active", i === current);
+    }
+
+    var activeProject = PROJECTS[current];
+    if (activeProject.url){
+      ctaBtn.href = activeProject.url;
+      ctaBtn.textContent = "View Project";
+      ctaBtn.classList.remove("is-pending");
+      ctaBtn.removeAttribute("aria-disabled");
+      ctaBtn.removeAttribute("tabindex");
+    } else {
+      ctaBtn.href = "#";
+      ctaBtn.textContent = "Link Pending";
+      ctaBtn.classList.add("is-pending");
+      ctaBtn.setAttribute("aria-disabled", "true");
+      ctaBtn.setAttribute("tabindex", "-1");
+    }
+
+    readoutIdx.textContent = String(current + 1).padStart(2, "0");
+    readoutName.textContent = PROJECTS[current].name;
+    liveRegion.textContent = "Showing " + PROJECTS[current].name + ", project " + (current + 1) + " of " + total;
+    slider.value = String(current);
+  }
+
+  function goTo(index){
+    var prev = current;
+    current = Math.max(0, Math.min(total - 1, index));
+    render();
+    stopAuto();
+    if (current !== prev) playTone(current > prev ? 520 : 420, 0.05, 0.1);
+  }
+
+  slider.addEventListener("input", function(){
+    current = Number(slider.value);
+    render();
+    stopAuto();
+  });
+  prevBtn.addEventListener("click", function(){ goTo(current - 1); });
+  nextBtn.addEventListener("click", function(){ goTo(current + 1); });
+
+  stage.addEventListener("keydown", function(e){
+    if (e.key === "ArrowLeft"){ e.preventDefault(); goTo(current - 1); }
+    if (e.key === "ArrowRight"){ e.preventDefault(); goTo(current + 1); }
+  });
+
+  var dragging = false, startX = 0;
+  stage.addEventListener("pointerdown", function(e){ dragging = true; startX = e.clientX; });
+  window.addEventListener("pointermove", function(){ /* visual drag omitted, snap on release */ });
+  window.addEventListener("pointerup", function(e){
+    if (!dragging) return;
+    dragging = false;
+    var dx = e.clientX - startX;
+    if (Math.abs(dx) > 40) goTo(current + (dx < 0 ? 1 : -1));
+  });
+
+  var autoTimer = null;
+  function startAuto(){
+    if (prefersReducedMotion) return;
+    autoTimer = setInterval(function(){
+      current = (current + 1) % total;
+      render();
+    }, 3800);
+    autoToggle.setAttribute("aria-pressed", "true");
+  }
+  function stopAuto(){
+    if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+    autoToggle.setAttribute("aria-pressed", "false");
+  }
+  autoToggle.addEventListener("click", function(){
+    if (autoTimer) stopAuto(); else startAuto();
+    playTone(autoTimer ? 480 : 340, 0.05, 0.12);
+  });
+  if (prefersReducedMotion) autoToggle.style.display = "none";
+
+  window.addEventListener("resize", render);
+  render();
+}
+
 renderHobbies();
-renderArchive("projects-archive", PROJECTS, "No additional records archived yet. New entries surface as they are built.");
 renderArchive("experiments-archive", EXPERIMENTS, "No experiments logged yet. Check back as new ones surface.");
+initProjectCarousel();
 
 document.querySelectorAll('.contact-link[href^="mailto:"]').forEach(function(el){
   el.href = "mailto:" + CONTACT_EMAIL;
@@ -1527,7 +1949,7 @@ if (!prefersReducedMotion && "IntersectionObserver" in window){
       }
     });
   }, { threshold:0.1 });
-  ["constellation","projects-archive","experiments-archive"].forEach(function(id){
+  ["constellation","project-carousel","experiments-archive"].forEach(function(id){
     var el = document.getElementById(id);
     if (el) staggerObserver.observe(el);
   });
