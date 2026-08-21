@@ -2649,7 +2649,13 @@ document.addEventListener("keydown", function(e){
     "graphics3.mp4",
     "graphics4.mp4",
     "graphics5.mp4",
-    "graphics6.mp4"
+    "graphics6.mp4",
+    "graphics7.mp4",
+    "graphics8.mp4",
+    "graphics9.mp4",
+    "graphics10.mp4",
+    "graphics11.mp4",
+    "graphics12.mp4"
   ];
 
   var btn = document.getElementById("bg-toggle-btn");
@@ -2699,7 +2705,7 @@ document.addEventListener("keydown", function(e){
   btn.addEventListener("focus", settle);
   btn.addEventListener("click", function(){
     settle();
-    setState((state + 1) % 7);
+    setState((state + 1) % (VIDEO_SOURCES.length + 1));
   });
 })();
 </script>
