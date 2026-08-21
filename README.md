@@ -6,6 +6,8 @@ Here is the Website Link (on top)
 
 # ⚙️ Welcome to the Workshop
 
+https://youtu.be/salY_Sm6mv4?si=Qi05gCd_aGO1GgQ1
+check out his tutorial up here .-.
 I build things that probably shouldn't work.
 
 I'm Legend, a student and developer obsessed with turning random ideas into actual systems.
