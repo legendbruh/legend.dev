@@ -66,7 +66,10 @@ html.light-mode .grain{
 html.light-mode body{ background:var(--void); }
 
 *{ box-sizing:border-box; }
-html{ scroll-behavior:smooth; }
+html{
+  scroll-behavior:smooth;
+  touch-action:pan-x pan-y;
+}
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior:auto; }
 }
@@ -78,6 +81,7 @@ body{
   font-family:var(--font-body);
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
+  touch-action:pan-x pan-y;
 }
 
 html.large-text{ zoom:1.15; }
@@ -170,6 +174,30 @@ a{ color:inherit; }
   outline-offset:3px;
 }
 
+/* Tactile press feedback across every clickable control */
+.util-btn, .bg-toggle-btn, .nav-link, .node, .node-toggle, .sub-link,
+.arrow-btn, .rec-link, .p-cta, .p-auto-toggle, .auto-toggle,
+.text-size-toggle, .archive-close, .role-chip, .tag, .contact-link{
+  transition-property: transform, color, border-color, background, opacity, box-shadow;
+}
+.util-btn:active, .bg-toggle-btn:active, .node:active, .node-toggle:active,
+.arrow-btn:active, .rec-link:active, .p-cta:active, .p-auto-toggle:active,
+.auto-toggle:active, .text-size-toggle:active, .archive-close:active{
+  transform:scale(0.93);
+  transition-duration:.12s;
+}
+@media (prefers-reduced-motion: reduce){
+  .util-btn:active, .bg-toggle-btn:active, .node:active, .node-toggle:active,
+  .arrow-btn:active, .rec-link:active, .p-cta:active, .p-auto-toggle:active,
+  .auto-toggle:active, .text-size-toggle:active, .archive-close:active{
+    transform:none;
+  }
+}
+
+/* Tag chip hover lift */
+.tag{ transition:transform .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease); }
+.tag:hover{ transform:translateY(-2px); border-color:var(--accent-soft); color:var(--text-primary); }
+
 /* ============================================================
    BACKGROUND LAYERS
    ============================================================ */
@@ -247,6 +275,21 @@ section{
   letter-spacing:-0.01em;
   margin:0 0 28px 0;
   color:var(--text-primary);
+  position:relative;
+  display:inline-block;
+}
+.section-title::after{
+  content:'';
+  position:absolute;
+  left:0; bottom:-10px;
+  height:2px;
+  width:0;
+  background:linear-gradient(90deg, var(--accent), transparent);
+  transition:width 1s var(--ease) .15s;
+}
+.section-title.in-view::after{ width:64px; }
+@media (prefers-reduced-motion: reduce){
+  .section-title::after{ transition:none; width:64px; }
 }
 
 .section-lede{
@@ -422,6 +465,30 @@ section{
   border:1px solid transparent;
   transition:all .3s var(--ease);
 }
+.nav-icon{
+  display:none;
+  width:19px; height:19px;
+  color:var(--text-tertiary);
+  flex:0 0 auto;
+  transition:color .3s var(--ease), transform .3s var(--ease);
+}
+.nav-link:hover .nav-icon, .nav-link:focus-visible .nav-icon{
+  color:var(--accent);
+  transform:scale(1.12) rotate(-6deg);
+}
+.nav-item.active .nav-icon{
+  color:var(--accent);
+  filter:drop-shadow(0 0 6px var(--accent-glow));
+  animation:navIconPop .5s var(--ease);
+}
+@keyframes navIconPop{
+  0%{ transform:scale(0.7) rotate(-10deg); }
+  60%{ transform:scale(1.18) rotate(4deg); }
+  100%{ transform:scale(1) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce){
+  .nav-item.active .nav-icon{ animation:none; }
+}
 .nav-link .label{
   position:absolute;
   left:calc(100% + 14px);
@@ -510,6 +577,7 @@ section{
     opacity:0;
     pointer-events:none;
     transition:opacity .35s var(--ease);
+    touch-action:none;
   }
   .nav-backdrop.open{ opacity:1; pointer-events:auto; }
 
@@ -526,6 +594,9 @@ section{
     transform:translateX(-100%);
     transition:transform .4s var(--ease);
     z-index:45;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    touch-action:pan-y;
   }
   .nav-instrument.open{ transform:translateX(0); }
 
@@ -543,6 +614,8 @@ section{
     width:100%;
   }
   .nav-link{ flex-direction:row; align-items:center; gap:14px; width:100%; padding:8px 0; }
+  .nav-link .node{ display:none; }
+  .nav-icon{ display:inline-flex; width:20px; height:20px; }
   .nav-link .label{
     position:static;
     opacity:1;
@@ -556,6 +629,32 @@ section{
   }
   .nav-item.active .label{ color:var(--accent); }
   .nav-instrument .rail{ display:none; }
+
+  /* Staggered slide-in entrance for sidebar items */
+  .nav-list .nav-item{
+    opacity:0;
+    transform:translateX(-16px);
+    transition:opacity .4s var(--ease), transform .4s var(--ease);
+  }
+  .nav-instrument.open .nav-list .nav-item{ opacity:1; transform:translateX(0); }
+  .nav-instrument.open .nav-list .nav-item:nth-child(1){ transition-delay:.07s; }
+  .nav-instrument.open .nav-list .nav-item:nth-child(2){ transition-delay:.12s; }
+  .nav-instrument.open .nav-list .nav-item:nth-child(3){ transition-delay:.17s; }
+  .nav-instrument.open .nav-list .nav-item:nth-child(4){ transition-delay:.22s; }
+  .nav-instrument.open .nav-list .nav-item:nth-child(5){ transition-delay:.27s; }
+  .nav-instrument.open .nav-list .nav-item:nth-child(6){ transition-delay:.32s; }
+
+  .text-size-toggle{
+    opacity:0;
+    transform:translateX(-16px);
+    transition:opacity .4s var(--ease), transform .4s var(--ease);
+  }
+  .nav-instrument.open .text-size-toggle{ opacity:1; transform:translateX(0); transition-delay:.36s; }
+  .nav-instrument.open .text-size-toggle + .text-size-toggle{ transition-delay:.4s; }
+
+  @media (prefers-reduced-motion: reduce){
+    .nav-list .nav-item, .text-size-toggle{ opacity:1; transform:none; transition:none; }
+  }
 }
 
 /* ============================================================
@@ -563,6 +662,7 @@ section{
    ============================================================ */
 .hero{
   min-height:100vh;
+  min-height:100svh;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -769,10 +869,26 @@ section{
   display:inline-block;
   margin-bottom:12px;
   transition:all .3s var(--ease);
+  position:relative;
 }
 .node:hover .dot, .node[aria-expanded="true"] .dot{
   background:var(--accent);
   box-shadow:0 0 8px var(--accent-glow);
+}
+.node[aria-expanded="true"] .dot::after{
+  content:'';
+  position:absolute;
+  inset:-5px;
+  border-radius:50%;
+  border:1px solid var(--accent-soft);
+  animation:dotPulseRing .6s var(--ease);
+}
+@keyframes dotPulseRing{
+  0%{ transform:scale(0.3); opacity:0.9; }
+  100%{ transform:scale(2.2); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .node[aria-expanded="true"] .dot::after{ animation:none; display:none; }
 }
 .node .title{
   display:block;
@@ -995,7 +1111,17 @@ section{
   will-change:transform;
   cursor:pointer;
 }
-.p-card.is-active{ border-color:var(--accent-soft); }
+.p-card.is-active{
+  border-color:var(--accent-soft);
+  animation:pCardGlow 3.6s ease-in-out infinite;
+}
+@keyframes pCardGlow{
+  0%, 100%{ box-shadow:0 30px 60px -24px rgba(0,0,0,0.7), 0 0 0 rgba(216,184,114,0); }
+  50%{ box-shadow:0 30px 60px -24px rgba(0,0,0,0.7), 0 0 26px -4px var(--accent-glow); }
+}
+@media (prefers-reduced-motion: reduce){
+  .p-card.is-active{ animation:none; }
+}
 .p-card.is-active:hover{ border-color:var(--accent); }
 
 .p-cover{
@@ -1361,22 +1487,46 @@ section{
   <div class="rail" aria-hidden="true"></div>
   <ul class="nav-list">
     <li class="nav-item active" data-section="hero">
-      <a class="nav-link" href="#hero"><span class="idx">00</span><span class="node"></span><span class="label">Origin</span></a>
+      <a class="nav-link" href="#hero">
+        <span class="idx">00</span><span class="node"></span>
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2v3M10 15v3M2 10h3M15 10h3M4.5 4.5l2 2M13.5 13.5l2 2M15.5 4.5l-2 2M6.5 13.5l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="10" r="2.3" stroke="currentColor" stroke-width="1.4"/></svg>
+        <span class="label">Origin</span>
+      </a>
     </li>
     <li class="nav-item" data-section="about">
-      <a class="nav-link" href="#about"><span class="idx">01</span><span class="node"></span><span class="label">About</span></a>
+      <a class="nav-link" href="#about">
+        <span class="idx">01</span><span class="node"></span>
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7" r="3.2" stroke="currentColor" stroke-width="1.4"/><path d="M3.8 17c.7-3.4 3.5-5.4 6.2-5.4s5.5 2 6.2 5.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="label">About</span>
+      </a>
     </li>
     <li class="nav-item" data-section="hobbies">
-      <a class="nav-link" href="#hobbies"><span class="idx">02</span><span class="node"></span><span class="label">Hobbies</span></a>
+      <a class="nav-link" href="#hobbies">
+        <span class="idx">02</span><span class="node"></span>
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="5" cy="6" r="1.6" stroke="currentColor" stroke-width="1.3"/><circle cx="15" cy="5" r="1.6" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="14" r="1.6" stroke="currentColor" stroke-width="1.3"/><path d="M6.3 7l3 5.6M13.7 6l-3 5.9M6.5 5.6L13.5 5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+        <span class="label">Hobbies</span>
+      </a>
     </li>
     <li class="nav-item" data-section="projects">
-      <a class="nav-link" href="#projects"><span class="idx">03</span><span class="node"></span><span class="label">Projects</span></a>
+      <a class="nav-link" href="#projects">
+        <span class="idx">03</span><span class="node"></span>
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5l7 3.6-7 3.6-7-3.6 7-3.6z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M3 10.3l7 3.6 7-3.6M3 14l7 3.6 7-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Projects</span>
+      </a>
     </li>
     <li class="nav-item" data-section="experiments">
-      <a class="nav-link" href="#experiments"><span class="idx">04</span><span class="node"></span><span class="label">Experiments</span></a>
+      <a class="nav-link" href="#experiments">
+        <span class="idx">04</span><span class="node"></span>
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8 2.5h4M8.6 2.5v5.2L4.8 14a1.6 1.6 0 001.4 2.5h7.6a1.6 1.6 0 001.4-2.5l-3.8-6.3V2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12h6.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span class="label">Experiments</span>
+      </a>
     </li>
     <li class="nav-item" data-section="contact">
-      <a class="nav-link" href="#contact"><span class="idx">05</span><span class="node"></span><span class="label">Contact</span></a>
+      <a class="nav-link" href="#contact">
+        <span class="idx">05</span><span class="node"></span>
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2.5" y="4.5" width="15" height="11" rx="1.6" stroke="currentColor" stroke-width="1.4"/><path d="M3.2 5.5L10 11l6.8-5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Contact</span>
+      </a>
     </li>
   </ul>
   <button class="text-size-toggle" id="text-size-toggle" type="button" aria-pressed="false">
@@ -1994,11 +2144,13 @@ function openNav(){
   navInstrument.classList.add("open");
   navBackdrop.classList.add("open");
   navToggle.setAttribute("aria-expanded","true");
+  document.body.style.overflow = "hidden";
 }
 function closeNav(){
   navInstrument.classList.remove("open");
   navBackdrop.classList.remove("open");
   navToggle.setAttribute("aria-expanded","false");
+  document.body.style.overflow = "";
 }
 navToggle.addEventListener("click", function(){
   if (navInstrument.classList.contains("open")) closeNav(); else openNav();
