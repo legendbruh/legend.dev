@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGEND.DEV // Developers Laboratory & Technical Workspace</title>
+    <meta name="description" content="Personal digital laboratory of Legend (Crusaderly) - Experimentalist / Developer / Engineer & Creator.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        lab: {
+                            base: '#030508',
+                            surface: '#080c14',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            accent: '#00f0ff',
+                            'accent-glow': 'rgba(0, 240, 255, 0.25)',
+                            secondary: '#7928ca',
+                            muted: '#64748b',
+                            text: '#f8fafc'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"Fira Code"', 'monospace'],
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --accent: #00f0ff;
+            --accent-rgb: 0, 240, 255;
+            --bg-base: #030508;
+            --bg-surface: #080c14;
+            --bg-card: #0f172a;
+            --border: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+        }
+
+        .light {
+            --accent: #0284c7;
+            --accent-rgb: 2, 132, 199;
+            --bg-base: #f0f4f8;
+            --bg-surface: #ffffff;
+            --bg-card: #e2e8f0;
+            --border: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .light .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Custom Cursor */
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, select, [data-magnetic] { cursor: none; }
+        }
+
+        #cursor-dot {
+            position: fixed;
+            top: 0; left: 0;
+            width: 6px; height: 6px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease;
+        }
+
+        #cursor-ring {
+            position: fixed;
+            top: 0; left: 0;
+            width: 36px; height: 36px;
+            border: 1px solid rgba(var(--accent-rgb), 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: transform 0.18s ease-out, width 0.25s ease-out, height 0.25s ease-out, border-color 0.25s ease-out;
+        }
+
+        body.hovering #cursor-dot {
+            width: 10px; height: 10px;
+            background-color: #ffffff;
+        }
+
+        body.hovering #cursor-ring {
+            width: 54px; height: 54px;
+            border-color: var(--accent);
+            background-color: rgba(var(--accent-rgb), 0.08);
+        }
+
+        /* Interactive Button Micro-Animations */
+        .btn-animate {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-animate:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 25px -5px rgba(var(--accent-rgb), 0.3);
+        }
+        .btn-animate:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* HUD Corners */
+        .hud-corner {
+            position: absolute;
+            width: 8px; height: 8px;
+            border-color: var(--accent);
+            pointer-events: none;
+        }
+        .hud-tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; }
+        .hud-tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; }
+        .hud-bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; }
+        .hud-br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; }
+
+        /* Background Grid */
+        .bg-grid-pattern {
+            background-size: 50px 50px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+
+        .carousel-card {
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+            will-change: transform, opacity;
+        }
+
+        /* Reduced Motion Utility */
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            #cursor-dot, #cursor-ring { display: none !important; }
+            body { cursor: auto !important; }
+        }
+    </style>
+</head>
+<body class="selection:bg-cyan-500/30 selection:text-cyan-200 min-h-screen relative font-sans">
+
+    <!-- Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- GLOBAL BACKGROUND SYSTEM -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <canvas id="bg-canvas" class="absolute inset-0 w-full h-full opacity-60 transition-opacity duration-700"></canvas>
+        <video id="bg-video" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000" loop playsinline muted></video>
+        
+        <div class="absolute inset-0 bg-grid-pattern opacity-40"></div>
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[130px]"></div>
+        <div class="absolute top-1/2 -right-40 w-96 h-96 bg-purple-600/10 rounded-full blur-[150px]"></div>
+        <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-600/10 rounded-full blur-[150px]"></div>
+    </div>
+
+    <!-- ANIMATED VIDEO LOADING SCREEN -->
+    <div id="boot-screen" class="fixed inset-0 z-50 bg-[#030508] flex flex-col items-center justify-center p-6 transition-opacity duration-700">
+        <video id="loading-video" class="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none" autoplay loop muted playsinline>
+            <source src="loading.mp4" type="video/mp4">
+        </video>
+        
+        <div class="relative z-10 glass-panel rounded-3xl p-8 max-w-md w-full border border-cyan-500/30 text-center space-y-6">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400 animate-pulse">
+                <i data-lucide="orbit" class="w-8 h-8"></i>
+            </div>
+
+            <div>
+                <h1 class="text-3xl font-extrabold font-display text-white tracking-tight">LEGEND<span class="text-cyan-400">.DEV</span></h1>
+                <p class="text-xs font-mono text-lab-muted mt-1">INITIALIZING DEEP SPACE LAB // V3.8</p>
+            </div>
+
+            <div id="boot-log" class="text-xs font-mono text-slate-400 h-10 overflow-hidden space-y-1">
+                <div>> Synchronizing orbital telemetry...</div>
+            </div>
+
+            <div class="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
+                <div id="boot-progress" class="bg-cyan-400 h-full w-0 transition-all duration-300 ease-out"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <span>STATION: CRUSADERLY</span>
+                <span>PRESS [ESC] TO SKIP</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN UI WRAPPER -->
+    <div id="app" class="relative z-10 flex flex-col min-h-screen opacity-0 transition-opacity duration-700">
+
+        <!-- FLOATING TOP NAVIGATION DECK -->
+        <header class="fixed top-0 left-0 w-full z-40 px-4 sm:px-8 py-4 transition-all duration-300">
+            <div class="max-w-7xl mx-auto flex items-center justify-between glass-panel rounded-2xl px-6 py-3">
+                
+                <button id="sidebar-toggle-btn" class="btn-animate p-2.5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 flex items-center gap-2 text-xs font-mono hover:bg-cyan-500 hover:text-black" data-magnetic aria-label="Open Navigation Drawer">
+                    <i data-lucide="menu" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline font-bold">STATION MENU</span>
+                </button>
+
+                <a href="#home" class="flex items-center gap-2 group" data-magnetic>
+                    <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center font-mono font-bold text-cyan-400 group-hover:bg-cyan-500 group-hover:text-black transition-all">
+                        L
+                    </div>
+                    <span class="font-display font-bold tracking-wide text-sm text-white group-hover:text-cyan-400 transition-colors">LEGEND.DEV</span>
+                </a>
+
+                <div class="flex items-center gap-2">
+                    <button id="video-cycle-btn" class="btn-animate px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-lab-muted hover:text-cyan-400 hover:border-cyan-500/40 text-xs font-mono flex items-center gap-2" title="Switch Background Atmosphere" data-magnetic>
+                        <i data-lucide="film" class="w-4 h-4 text-cyan-400"></i>
+                        <span id="video-indicator-text" class="hidden md:inline">CODE BG</span>
+                    </button>
+
+                    <button id="theme-toggle" class="btn-animate p-2.5 rounded-xl border border-white/10 bg-white/5 text-lab-muted hover:text-cyan-400 hover:border-cyan-500/40" title="Toggle Theme Mode" data-magnetic aria-label="Toggle Theme">
+                        <i data-lucide="moon" class="w-4 h-4"></i>
+                    </button>
+
+                    <button id="terminal-toggle" class="btn-animate hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-mono hover:bg-cyan-500 hover:text-black" data-magnetic>
+                        <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+                        <span>CLI</span>
+                    </button>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- LEFT SLIDING SIDEBAR NAVIGATION DRAWER -->
+        <aside id="sidebar-drawer" class="fixed top-0 left-0 h-full w-80 sm:w-96 z-50 glass-panel border-r border-white/10 p-6 flex flex-col justify-between -translate-x-full transition-transform duration-300 ease-in-out shadow-2xl">
+            
+            <div class="space-y-6 overflow-y-auto pr-2">
+                <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
+                            <i data-lucide="compass" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-display font-bold text-white text-sm">ORBITAL NAVIGATION</div>
+                            <div class="text-[10px] font-mono text-lab-muted">DEEP SPACE STATION V3.8</div>
+                        </div>
+                    </div>
+                    <button id="sidebar-close-btn" class="btn-animate p-2 rounded-xl text-lab-muted hover:text-white" aria-label="Close Sidebar">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <nav class="space-y-2 font-mono text-xs">
+                    <div class="rounded-xl border border-white/5 bg-white/5 overflow-hidden">
+                        <button class="w-full px-4 py-3 text-left font-bold text-white flex items-center justify-between hover:bg-white/5 transition-colors sidebar-acc-btn">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="home" class="w-4 h-4 text-cyan-400"></i>
+                                <span>01 / HOME</span>
+                            </span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-lab-muted transition-transform"></i>
+                        </button>
+                        <div class="px-4 py-2 space-y-1 bg-black/40 text-lab-muted hidden sidebar-acc-content">
+                            <a href="#home" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Command Deck</a>
+                            <a href="#home" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• System Overview</a>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-white/5 bg-white/5 overflow-hidden">
+                        <button class="w-full px-4 py-3 text-left font-bold text-white flex items-center justify-between hover:bg-white/5 transition-colors sidebar-acc-btn">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>
+                                <span>02 / ABOUT</span>
+                            </span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-lab-muted transition-transform"></i>
+                        </button>
+                        <div class="px-4 py-2 space-y-1 bg-black/40 text-lab-muted hidden sidebar-acc-content">
+                            <a href="#about" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Profile Overview</a>
+                            <a href="#about" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Crusaderly Identity</a>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-white/5 bg-white/5 overflow-hidden">
+                        <button class="w-full px-4 py-3 text-left font-bold text-white flex items-center justify-between hover:bg-white/5 transition-colors sidebar-acc-btn">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="network" class="w-4 h-4 text-emerald-400"></i>
+                                <span>03 / INTERESTS</span>
+                            </span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-lab-muted transition-transform"></i>
+                        </button>
+                        <div class="px-4 py-2 space-y-1 bg-black/40 text-lab-muted hidden sidebar-acc-content">
+                            <a href="#interests" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Physics & Science</a>
+                            <a href="#interests" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Electronics & Hardware</a>
+                            <a href="#interests" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Computing & AI</a>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-white/5 bg-white/5 overflow-hidden">
+                        <button class="w-full px-4 py-3 text-left font-bold text-white flex items-center justify-between hover:bg-white/5 transition-colors sidebar-acc-btn">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="folder-git-2" class="w-4 h-4 text-amber-400"></i>
+                                <span>04 / PROJECTS</span>
+                            </span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-lab-muted transition-transform"></i>
+                        </button>
+                        <div class="px-4 py-2 space-y-1 bg-black/40 text-lab-muted hidden sidebar-acc-content">
+                            <a href="#projects" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• CrusadersBedrock API</a>
+                            <a href="#projects" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Hardware Controllers</a>
+                            <a href="#projects" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Carousel Archive</a>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-white/5 bg-white/5 overflow-hidden">
+                        <button class="w-full px-4 py-3 text-left font-bold text-white flex items-center justify-between hover:bg-white/5 transition-colors sidebar-acc-btn">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="flask-conical" class="w-4 h-4 text-pink-400"></i>
+                                <span>05 / EXPERIMENTS</span>
+                            </span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-lab-muted transition-transform"></i>
+                        </button>
+                        <div class="px-4 py-2 space-y-1 bg-black/40 text-lab-muted hidden sidebar-acc-content">
+                            <a href="#experiments" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Micro-Hardware Prototypes</a>
+                            <a href="#experiments" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Algorithmic Research</a>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-white/5 bg-white/5 overflow-hidden">
+                        <button class="w-full px-4 py-3 text-left font-bold text-white flex items-center justify-between hover:bg-white/5 transition-colors sidebar-acc-btn">
+                            <span class="flex items-center gap-3">
+                                <i data-lucide="radio" class="w-4 h-4 text-cyan-400"></i>
+                                <span>06 / CONTACT</span>
+                            </span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-lab-muted transition-transform"></i>
+                        </button>
+                        <div class="px-4 py-2 space-y-1 bg-black/40 text-lab-muted hidden sidebar-acc-content">
+                            <a href="#contact" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• Transmission Hub</a>
+                            <a href="#contact" class="block py-1 hover:text-cyan-400 transition-colors sidebar-nav-close">• GitHub Profile</a>
+                        </div>
+                    </div>
+
+                </nav>
+
+                <div class="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3 font-mono text-xs">
+                    <div class="flex items-center justify-between text-cyan-400">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="volume-2" class="w-4 h-4"></i>
+                            <span class="font-bold">BACKGROUND AUDIO</span>
+                        </span>
+                        <span id="volume-readout" class="text-[10px] text-slate-400">0%</span>
+                    </div>
+                    <input type="range" id="video-volume-slider" min="0" max="1" step="0.05" value="0" class="w-full accent-cyan-400 bg-slate-800 rounded-lg cursor-pointer h-1.5">
+                    <div class="text-[10px] text-lab-muted">Adjust background atmosphere sound volume.</div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-slate-500">
+                <span>IDENTITY: LEGEND</span>
+                <span>STATUS: ORBITAL</span>
+            </div>
+
+        </aside>
+
+        <!-- BACKDROP OVERLAY FOR SIDEBAR -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+        <!-- VERTICAL PROGRESS INDICATOR (DESKTOP) -->
+        <div class="fixed right-6 top-1/2 -translate-y-1/2 z-30 hidden lg:flex flex-col items-center gap-4">
+            <div class="text-[10px] font-mono text-lab-muted rotate-90 origin-center tracking-widest uppercase mb-4" id="scroll-percentage">000%</div>
+            <div class="w-1 h-32 bg-white/10 rounded-full overflow-hidden relative">
+                <div id="scroll-progress-bar" class="w-full bg-cyan-400 h-0 transition-all duration-75"></div>
+            </div>
+            <div class="text-[10px] font-mono text-cyan-400/80" id="current-section-code">01</div>
+        </div>
+
+        <!-- CONTENT SECTIONS -->
+        <main class="flex-grow">
+
+            <!-- 01 // HERO SECTION -->
+            <section id="home" class="min-h-screen relative flex items-center justify-center px-4 sm:px-8 pt-20">
+                <div class="max-w-5xl w-full mx-auto relative z-10">
+                    
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-400 text-xs font-mono mb-6 backdrop-blur-md">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span>SYSTEM ONLINE / DEEP SPACE LABORATORY</span>
+                    </div>
+
+                    <h1 class="text-6xl sm:text-8xl md:text-9xl font-extrabold tracking-tighter font-display leading-none mb-4 text-white">
+                        LEGEND<span class="text-cyan-400">.</span>
+                    </h1>
+
+                    <div class="text-lg sm:text-2xl font-mono text-lab-muted mb-8 tracking-tight flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span class="text-white font-medium">DEVELOPER</span>
+                        <span class="text-cyan-500/50">/</span>
+                        <span class="text-white font-medium">ENGINEER</span>
+                        <span class="text-cyan-500/50">/</span>
+                        <span class="text-white font-medium">EXPERIMENTER</span>
+                    </div>
+
+                    <p class="max-w-2xl text-base sm:text-lg text-lab-muted leading-relaxed font-sans mb-10">
+                        I build systems, mechanics, and experiments at the intersection of code, engineering, and creative curiosity. Exploring embedded microcontrollers, game systems, and autonomous digital behavior.
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-4 font-mono text-sm">
+                        <a href="#projects" class="btn-animate px-6 py-3.5 rounded-xl bg-cyan-500 text-black font-bold flex items-center gap-2 shadow-lg shadow-cyan-500/20" data-magnetic>
+                            <span>EXPLORE PROJECTS</span>
+                            <i data-lucide="arrow-down-right" class="w-4 h-4"></i>
+                        </a>
+                        <a href="https://github.com/legendbruh" target="_blank" rel="noopener noreferrer" class="btn-animate px-6 py-3.5 rounded-xl glass-panel text-white border border-white/10 hover:border-cyan-500/50 flex items-center gap-2" data-magnetic>
+                            <i data-lucide="github" class="w-4 h-4 text-cyan-400"></i>
+                            <span>github.com/legendbruh</span>
+                        </a>
+                    </div>
+
+                    <div class="mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-white/10 pt-6 font-mono text-xs">
+                        <div>
+                            <div class="text-lab-muted">IDENTITY</div>
+                            <div class="text-white font-semibold mt-1">Crusaderly</div>
+                        </div>
+                        <div>
+                            <div class="text-lab-muted">CORE PLATFORM</div>
+                            <div class="text-white font-semibold mt-1">Minecraft Bedrock API</div>
+                        </div>
+                        <div>
+                            <div class="text-lab-muted">HARDWARE</div>
+                            <div class="text-white font-semibold mt-1">Embedded Systems</div>
+                        </div>
+                        <div>
+                            <div class="text-lab-muted">ORBIT STATUS</div>
+                            <div class="text-cyan-400 font-semibold mt-1 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> ACTIVE RESEARCH
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 02 // ABOUT SECTION -->
+            <section id="about" class="py-32 px-4 sm:px-8 relative border-t border-white/5">
+                <div class="max-w-6xl mx-auto">
+                    
+                    <div class="flex items-center gap-3 font-mono text-xs text-cyan-400 mb-4">
+                        <span>02</span>
+                        <span class="w-8 h-px bg-cyan-400/30"></span>
+                        <span>PROFILE & SPECIFICATION</span>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-5xl font-bold font-display tracking-tight text-white mb-12">
+                        THE EXPERIMENTAL PROFILE
+                    </h2>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        
+                        <div class="lg:col-span-7 glass-panel rounded-2xl p-8 relative">
+                            <div class="hud-corner hud-tl"></div>
+                            <div class="hud-corner hud-tr"></div>
+                            <div class="hud-corner hud-bl"></div>
+                            <div class="hud-corner hud-br"></div>
+
+                            <div class="font-mono text-xs text-cyan-400 mb-2">/ DIGITIZED BIOGRAPHY</div>
+                            <h3 class="text-2xl font-bold text-white mb-4 font-display">Student, Developer & Multidisciplinary Engineer</h3>
+                            
+                            <div class="space-y-4 text-lab-muted leading-relaxed text-sm sm:text-base">
+                                <p>
+                                    I operate at the intersection of software engineering, physical hardware, and game systems. Rather than remaining isolated within a single domain, I thrive on taking concepts from physics, neuroscience, and mathematics and converting them into functional code or embedded devices.
+                                </p>
+                                <p>
+                                    My mindset centers around continuous curiosity: understanding how complex systems function from the ground up, dissecting their boundaries, and then modifying or building entirely custom mechanics upon them.
+                                </p>
+                                <p>
+                                    Whether it is scripting low level Bedrock API mechanics for custom Minecraft ecosystems, wiring microcontroller arrays, or exploring autonomous behavioral models, my work treats development as an ongoing scientific experiment.
+                                </p>
+                            </div>
+
+                            <div class="mt-8 pt-6 border-t border-white/10 flex flex-wrap gap-4 text-xs font-mono">
+                                <span class="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-slate-300">#Science</span>
+                                <span class="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-slate-300">#Electronics</span>
+                                <span class="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-slate-300">#Mechatronics</span>
+                                <span class="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-slate-300">#MinecraftScriptAPI</span>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-5 space-y-4">
+                            <div class="glass-panel rounded-2xl p-6 border-l-2 border-l-cyan-400">
+                                <div class="text-xs font-mono text-lab-muted mb-1">OPERATING SYSTEM</div>
+                                <div class="text-lg font-bold text-white font-display">Personal Digital Laboratory</div>
+                                <p class="text-xs text-lab-muted mt-2">A cohesive workstation designed for fast prototyping, reverse engineering, and hybrid physical-digital experiments.</p>
+                            </div>
+
+                            <div class="glass-panel rounded-2xl p-6 border-l-2 border-l-purple-500">
+                                <div class="text-xs font-mono text-lab-muted mb-1">PHILOSOPHY</div>
+                                <div class="text-lg font-bold text-white font-display">Interdisciplinary Synergy</div>
+                                <p class="text-xs text-lab-muted mt-2">Combining computing with electronics, psychological patterns, and physical laws to produce unique interactive media.</p>
+                            </div>
+
+                            <div class="glass-panel rounded-2xl p-6 border-l-2 border-l-emerald-400">
+                                <div class="text-xs font-mono text-lab-muted mb-1">PRIMARY HANDLES</div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="font-mono text-sm text-white">GitHub</span>
+                                    <a href="https://github.com/legendbruh" target="_blank" class="text-xs font-mono text-cyan-400 hover:underline flex items-center gap-1">@legendbruh <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 03 // INTERESTS SECTION -->
+            <section id="interests" class="py-32 px-4 sm:px-8 relative border-t border-white/5 bg-black/20">
+                <div class="max-w-6xl mx-auto">
+                    
+                    <div class="flex items-center gap-3 font-mono text-xs text-cyan-400 mb-4">
+                        <span>03</span>
+                        <span class="w-8 h-px bg-cyan-400/30"></span>
+                        <span>DISCIPLINARY GRAPH</span>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                        <div>
+                            <h2 class="text-3xl sm:text-5xl font-bold font-display tracking-tight text-white">
+                                INTERCONNECTED INTERESTS
+                            </h2>
+                            <p class="text-lab-muted text-sm mt-2 max-w-xl">
+                                Select any node field to inspect specific vectors and discover cross-field links.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="interests-container"></div>
+
+                    <div id="interest-detail-panel" class="mt-8 glass-panel rounded-2xl p-6 hidden border border-cyan-500/30 transition-all duration-300">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                <h4 id="interest-detail-title" class="font-display font-bold text-lg text-white">FIELD DETAILS</h4>
+                            </div>
+                            <button id="interest-detail-close" class="btn-animate text-lab-muted hover:text-white text-xs font-mono">[CLOSE]</button>
+                        </div>
+                        <p id="interest-detail-desc" class="text-sm text-lab-muted leading-relaxed mb-4"></p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-mono text-cyan-400 mr-2">CONNECTED FIELDS:</span>
+                            <div id="interest-detail-tags" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 04 // PROJECTS SECTION -->
+            <section id="projects" class="py-32 px-4 sm:px-8 relative border-t border-white/5">
+                <div class="max-w-7xl mx-auto">
+                    
+                    <div class="flex items-center gap-3 font-mono text-xs text-cyan-400 mb-4">
+                        <span>04</span>
+                        <span class="w-8 h-px bg-cyan-400/30"></span>
+                        <span>FEATURED ENGINEERING ARCHIVE</span>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-5xl font-bold font-display tracking-tight text-white mb-16">
+                        SYSTEMS & PROJECTS
+                    </h2>
+
+                    <!-- MAJOR FEATURED PROJECT: CRUSADERSBEDROCK -->
+                    <div class="glass-panel rounded-3xl p-8 sm:p-12 mb-20 relative overflow-hidden border-cyan-500/30 shadow-2xl">
+                        <div class="hud-corner hud-tl"></div>
+                        <div class="hud-corner hud-tr"></div>
+                        <div class="hud-corner hud-bl"></div>
+                        <div class="hud-corner hud-br"></div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                            
+                            <div class="lg:col-span-7 space-y-6">
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <span class="px-3 py-1 rounded-md bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-xs font-mono font-bold">PRIMARY PROJECT P-001</span>
+                                    <span class="px-3 py-1 rounded-md bg-white/5 border border-white/10 text-lab-muted text-xs font-mono">MINECRAFT BEDROCK EDITION</span>
+                                </div>
+
+                                <h3 class="text-3xl sm:text-5xl font-extrabold font-display text-white tracking-tight">
+                                    CRUSADERSBEDROCK
+                                </h3>
+
+                                <p class="text-lab-muted text-base sm:text-lg leading-relaxed">
+                                    An experimental Minecraft Bedrock Add-On strictly engineered for Survival+, Vanilla+, and Multiplayer ecosystems using Bedrock Script API. Introduces autonomous companion bots, custom spatial blocks, weather events, and teleport utilities.
+                                </p>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 font-mono text-xs pt-2">
+                                    <div class="p-3 rounded-xl bg-white/5 border border-white/5">
+                                        <div class="text-cyan-400 font-bold mb-1">Impulse Blocks</div>
+                                        <div class="text-slate-400 text-[11px]">Directional velocity manipulators.</div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white/5 border border-white/5">
+                                        <div class="text-cyan-400 font-bold mb-1">Bone Drone Pet</div>
+                                        <div class="text-slate-400 text-[11px]">Autonomous accompanying defensive entity.</div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white/5 border border-white/5">
+                                        <div class="text-cyan-400 font-bold mb-1">Calcite Turret</div>
+                                        <div class="text-slate-400 text-[11px]">Stationary automated target defense.</div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 flex flex-wrap items-center gap-4 font-mono text-sm">
+                                    <a href="https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrock" target="_blank" class="btn-animate px-6 py-3 rounded-xl bg-cyan-500 text-black font-bold flex items-center gap-2" data-magnetic>
+                                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                                        <span>CURSEFORGE PAGE</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="lg:col-span-5 flex justify-center">
+                                <div class="w-full aspect-square max-w-sm rounded-2xl bg-black/60 border border-cyan-500/30 p-6 flex flex-col justify-between relative overflow-hidden">
+                                    <div class="flex justify-between items-center text-xs font-mono text-cyan-400">
+                                        <span>MCBEDROCK_ENGINE</span>
+                                        <span>VER 1.20+</span>
+                                    </div>
+                                    <div class="my-auto text-center space-y-3">
+                                        <div class="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-400">
+                                            <i data-lucide="box" class="w-8 h-8"></i>
+                                        </div>
+                                        <div class="font-mono text-sm text-white font-bold">SCRIPT API V2</div>
+                                    </div>
+                                    <div class="text-[10px] font-mono text-slate-500 flex justify-between">
+                                        <span>VANILLA+ INTEGRATION</span>
+                                        <span>STABLE BUILD</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- OTHER PROJECTS CAROUSEL -->
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold font-display text-white">PROJECT ARCHIVE BROWSER</h3>
+                            <div class="flex items-center gap-2">
+                                <button id="carousel-prev" class="btn-animate p-3 rounded-xl glass-panel text-lab-muted hover:text-white" aria-label="Previous Project" data-magnetic>
+                                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                                </button>
+                                <button id="carousel-next" class="btn-animate p-3 rounded-xl glass-panel text-lab-muted hover:text-white" aria-label="Next Project" data-magnetic>
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative overflow-hidden py-4">
+                            <div id="carousel-track" class="flex gap-6 transition-transform duration-500 ease-out"></div>
+                        </div>
+
+                        <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                            <div id="carousel-progress" class="bg-cyan-400 h-full w-1/4 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 05 // EXPERIMENTS SECTION -->
+            <section id="experiments" class="py-32 px-4 sm:px-8 relative border-t border-white/5 bg-black/30">
+                <div class="max-w-6xl mx-auto">
+                    
+                    <div class="flex items-center gap-3 font-mono text-xs text-cyan-400 mb-4">
+                        <span>05</span>
+                        <span class="w-8 h-px bg-cyan-400/30"></span>
+                        <span>PROTOTYPES & RESEARCH ARCHIVE</span>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-5xl font-bold font-display tracking-tight text-white mb-4">
+                        EXPERIMENTAL LABORATORY
+                    </h2>
+                    <p class="text-lab-muted text-sm sm:text-base mb-12 max-w-2xl">
+                        A catalog of non production prototypes, micro hardware setups, AI simulations, and mechanical proofs of concept.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="experiments-grid"></div>
+
+                </div>
+            </section>
+
+            <!-- 06 // CONTACT SECTION -->
+            <section id="contact" class="py-32 px-4 sm:px-8 relative border-t border-white/5">
+                <div class="max-w-4xl mx-auto text-center">
+                    
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-400 text-xs font-mono mb-6">
+                        <span>06 / TRANSMISSION TERMINAL</span>
+                    </div>
+
+                    <h2 class="text-4xl sm:text-6xl font-extrabold font-display tracking-tight text-white mb-6">
+                        INITIATE CONTACT
+                    </h2>
+
+                    <p class="text-lab-muted text-base sm:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+                        Interested in collaborating on hardware prototyping, Minecraft Bedrock mechanics, or experimental software development? Reach out via GitHub or launch the interactive terminal.
+                    </p>
+
+                    <div class="flex flex-wrap items-center justify-center gap-4 font-mono text-sm">
+                        <a href="https://github.com/legendbruh" target="_blank" rel="noopener noreferrer" class="btn-animate px-8 py-4 rounded-2xl bg-cyan-500 text-black font-bold flex items-center gap-3 shadow-xl shadow-cyan-500/20" data-magnetic>
+                            <i data-lucide="github" class="w-5 h-5"></i>
+                            <span>github.com/legendbruh</span>
+                        </a>
+
+                        <button id="open-terminal-btn-contact" class="btn-animate px-8 py-4 rounded-2xl glass-panel text-white hover:border-cyan-500/50 flex items-center gap-3" data-magnetic>
+                            <i data-lucide="terminal" class="w-5 h-5 text-cyan-400"></i>
+                            <span>LAUNCH TERMINAL</span>
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-white/10 py-12 px-4 sm:px-8 relative z-10 glass-panel">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 font-mono text-xs text-lab-muted">
+                
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-white font-display text-base">LEGEND.DEV</span>
+                    <span class="text-cyan-500/40">|</span>
+                    <span>Built from curiosity.</span>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <a href="https://github.com/legendbruh" target="_blank" class="hover:text-cyan-400 transition-colors">GITHUB</a>
+                    <a href="#projects" class="hover:text-cyan-400 transition-colors">PROJECTS</a>
+                    <a href="#contact" class="hover:text-cyan-400 transition-colors">CONTACT</a>
+                </div>
+
+                <div class="flex items-center gap-4 text-[11px]">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span class="text-white">ORBIT STATUS: ONLINE</span>
+                    </div>
+                    <span>BUILD: 2026.8</span>
+                </div>
+
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- FLOATING CLI TERMINAL MODAL -->
+    <div id="terminal-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="max-w-2xl w-full glass-panel rounded-2xl overflow-hidden border border-cyan-500/40 shadow-2xl">
+            <div class="bg-black/80 px-4 py-3 border-b border-white/10 flex items-center justify-between font-mono text-xs text-lab-muted">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer" id="term-close-btn"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                    <span class="ml-2 text-slate-300">legend@deep-space-lab:~</span>
+                </div>
+                <div>TTY1 / SH</div>
+            </div>
+
+            <div id="terminal-output" class="p-6 font-mono text-xs text-cyan-400 h-80 overflow-y-auto space-y-2 leading-relaxed bg-black/90">
+                <div class="text-slate-400">LEGEND.DEV INTERACTIVE TERMINAL v3.8</div>
+                <div class="text-slate-400">Type <span class="text-white font-bold">'help'</span> for available commands.</div>
+                <div class="text-slate-600">--------------------------------------------------</div>
+            </div>
+
+            <form id="terminal-form" class="bg-black border-t border-white/10 px-4 py-3 flex items-center gap-2 font-mono text-xs">
+                <span class="text-cyan-400">&gt;</span>
+                <input type="text" id="terminal-input" class="bg-transparent border-none outline-none text-white w-full font-mono placeholder:text-slate-600" placeholder="Type a command..." autocomplete="off">
+            </form>
+        </div>
+    </div>
+
+    <!-- CORE DATA ENGINE & CONTROLLERS -->
+    <script>
+        // Data Arrays
+        const INTERESTS_DATA = [
+            {
+                id: 'science',
+                title: 'SCIENCE & PHYSICS',
+                category: 'THEORETICAL',
+                icon: 'atom',
+                desc: 'Exploring core principles of classical physics, quantum mechanics, spacetime models, and natural systems.',
+                connections: ['Electrical Engineering', 'Neuroscience', 'Computers']
+            },
+            {
+                id: 'engineering',
+                title: 'ELECTRICAL & ELECTRONICS',
+                category: 'HARDWARE',
+                icon: 'cpu',
+                desc: 'Wiring microcontrollers, custom circuitry, sensor integration, LED matrices, and embedded systems.',
+                connections: ['Robotics', 'Automation', 'Science']
+            },
+            {
+                id: 'neuroscience',
+                title: 'NEUROSCIENCE & PSYCHOLOGY',
+                category: 'COGNITION',
+                icon: 'brain',
+                desc: 'Studying neural architecture, cognitive structures, perception, and decision making mechanics.',
+                connections: ['Artificial Intelligence', 'Philosophy', 'Science']
+            },
+            {
+                id: 'computing',
+                title: 'PROGRAMMING & AI',
+                category: 'SOFTWARE',
+                icon: 'code-2',
+                desc: 'Building autonomous software, algorithmic mechanics, custom APIs, and machine logic systems.',
+                connections: ['Minecraft Modding', 'Game Development', 'Automation']
+            },
+            {
+                id: 'minecraft',
+                title: 'MINECRAFT BEDROCK MODDING',
+                category: 'GAME MECHANICS',
+                icon: 'box',
+                desc: 'Scripting custom Add Ons, vanilla+ enhancements, autonomous entities, and spatial utilities via Bedrock API.',
+                connections: ['Programming', 'Game Design', 'Automation']
+            },
+            {
+                id: 'philosophy',
+                title: 'PHILOSOPHY & CONSCIOUSNESS',
+                category: 'CONCEPTUAL',
+                icon: 'compass',
+                desc: 'Analyzing logic models, human behavior, digital ethics, and foundational questions of reality.',
+                connections: ['Neuroscience', 'Psychology', 'Artificial Intelligence']
+            }
+        ];
+
+        const PROJECTS_DATA = [
+            {
+                id: 'P-001',
+                title: 'CRUSADERSBEDROCK',
+                category: 'MINECRAFT BEDROCK ADD ON',
+                desc: 'Experimental Minecraft Bedrock Edition mod with scripting API integration, custom impulse blocks, drone pets, turret defense, and monsoon storms.',
+                tech: ['Bedrock Script API', 'JSON Mechanics', 'Custom Entities'],
+                status: 'ACTIVE DEVELOPMENT',
+                link: 'https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrock'
+            },
+            {
+                id: 'P-002',
+                title: 'DIMENSIONAL DOORS!',
+                category: 'MINECRAFT BEDROCK ADD ON',
+                desc: 'A port/recreation of the popular Java mod introducing pocket dimensions and intricate teleportation doorways.',
+                tech: ['Bedrock Script API', 'Custom Dimensions'],
+                status: 'ACTIVE',
+                link: 'https://www.curseforge.com/minecraft-bedrock/addons/dimensional-doors'
+            },
+            {
+                id: 'P-003',
+                title: 'PVP MANHUNT BOT (MCPE)',
+                category: 'MINECRAFT BEDROCK ADD ON',
+                desc: 'Automated hunter bots engineered to simulate the popular Manhunt gamemode on Bedrock Edition.',
+                tech: ['Bedrock Script API', 'AI Pathfinding'],
+                status: 'ACTIVE',
+                link: 'https://www.curseforge.com/minecraft-bedrock/addons/pvp-manhunt-bot-mcpe'
+            },
+            {
+                id: 'P-004',
+                title: 'CRUSADERSBEDROCK LITE',
+                category: 'MINECRAFT BEDROCK ADD ON',
+                desc: 'A performance-friendly version of CrusadersBedrock optimized for low-end devices and servers.',
+                tech: ['Optimization', 'JSON Mechanics'],
+                status: 'ACTIVE',
+                link: 'https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrocklite'
+            },
+            {
+                id: 'P-005',
+                title: 'CUSTOM POTIONS MAKER',
+                category: 'MINECRAFT BEDROCK ADD ON',
+                desc: 'A comprehensive API/utility to easily generate and manage custom potions with unique effects.',
+                tech: ['Bedrock Script API', 'Custom Items'],
+                status: 'ACTIVE',
+                link: 'https://www.curseforge.com/minecraft-bedrock/addons/crusaderscustompotions'
+            },
+            {
+                id: 'P-006',
+                title: 'CRUSADERS REDUCED PARTICLE EFFECT',
+                category: 'TEXTURE PACK',
+                desc: 'A Sparkler style spell resource pack prioritizing FPS by minimizing dense particle generation.',
+                tech: ['Resource Pack', 'Particles'],
+                status: 'ACTIVE',
+                link: 'https://www.curseforge.com/minecraft-bedrock/texture-packs/crusadersreducedeffect-sparkler-style-spells'
+            },
+            {
+                id: 'P-007',
+                title: 'CRUSADERS TOOLBOX',
+                category: 'MINECRAFT BEDROCK SCRIPT',
+                desc: 'A developer utility and scripting toolkit streamlining Bedrock API operations and testing.',
+                tech: ['Bedrock Script API', 'Developer Tools'],
+                status: 'ACTIVE',
+                link: 'https://www.curseforge.com/minecraft-bedrock/scripts/crusaderstoolbox'
+            }
+        ];
+
+        const EXPERIMENTS_DATA = [
+            {
+                id: 'EXP-010',
+                title: 'BLUETOOTH SENSOR ARRAY',
+                field: 'ELECTRONICS',
+                status: 'TESTED',
+                desc: 'Wireless telemetry transmission between microcontrollers and local interface web dashboards.'
+            },
+            {
+                id: 'EXP-011',
+                title: 'CUSTOM MINECRAFT WEAPON API',
+                field: 'BEDROCK MODDING',
+                status: 'IN PROGRESS',
+                desc: 'Script API implementation of custom cooldowns, elemental particle trails, and area of effect damage radius.'
+            },
+            {
+                id: 'EXP-012',
+                title: 'NEURAL NET BEHAVIOR MAP',
+                field: 'AI / PSYCHOLOGY',
+                status: 'PROTOTYPE',
+                desc: 'Simplified neural weight decision matrix simulating instinctual risk avoidance in digital entities.'
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            if (window.lucide) lucide.createIcons();
+
+            // 1. BOOT SEQUENCE
+            const bootScreen = document.getElementById('boot-screen');
+            const bootProgress = document.getElementById('boot-progress');
+            const bootLog = document.getElementById('boot-log');
+            const app = document.getElementById('app');
+
+            const bootLogs = [
+                '> Mounting orbital file system...',
+                '> Loading deep space starfield canvas...',
+                '> Syncing drawer navigation systems...',
+                '> Launching LEGEND.DEV environment...'
+            ];
+
+            let logIdx = 0;
+            const bootInt = setInterval(() => {
+                if (logIdx < bootLogs.length) {
+                    const line = document.createElement('div');
+                    line.textContent = bootLogs[logIdx];
+                    bootLog.appendChild(line);
+                    bootProgress.style.width = `${((logIdx + 1) / bootLogs.length) * 100}%`;
+                    logIdx++;
+                } else {
+                    clearInterval(bootInt);
+                    setTimeout(completeBoot, 400);
+                }
+            }, 300);
+
+            function completeBoot() {
+                bootScreen.classList.add('opacity-0', 'pointer-events-none');
+                app.classList.remove('opacity-0');
+                setTimeout(() => bootScreen.style.display = 'none', 700);
+            }
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') completeBoot();
+            });
+
+
+            // 2. BACKGROUND CANVAS & VIDEO CYCLE ENGINE
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            const bgVideo = document.getElementById('bg-video');
+            const videoCycleBtn = document.getElementById('video-cycle-btn');
+            const videoIndicatorText = document.getElementById('video-indicator-text');
+            const volumeSlider = document.getElementById('video-volume-slider');
+            const volumeReadout = document.getElementById('volume-readout');
+
+            let width, height;
+            let particles = [];
+            
+            function resizeCanvas() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            for (let i = 0; i < 50; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    r: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.5 + 0.1
+                });
+            }
+
+            function renderCanvas() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha})`;
+                    ctx.fill();
+                });
+                requestAnimationFrame(renderCanvas);
+            }
+            renderCanvas();
+
+            // Background Video Cycle Playlist Controller
+            // Mode 0: Code Canvas | Modes 1-12: graphics1.mp4 to graphics12.mp4
+            let currentBgState = 0; // 0 = Canvas
+            
+            videoCycleBtn.addEventListener('click', () => {
+                currentBgState = (currentBgState + 1) % 13;
+
+                if (currentBgState === 0) {
+                    // Switch back to Animated Code Canvas
+                    bgVideo.classList.add('opacity-0');
+                    canvas.classList.remove('opacity-0');
+                    videoIndicatorText.textContent = 'CODE BG';
+                    bgVideo.pause();
+                } else {
+                    // Switch to graphics1.mp4 ... graphics12.mp4
+                    const vidSrc = `graphics${currentBgState}.mp4`;
+                    bgVideo.src = vidSrc;
+                    bgVideo.play().catch(() => {});
+                    
+                    canvas.classList.add('opacity-0');
+                    bgVideo.classList.remove('opacity-0');
+                    videoIndicatorText.textContent = `VID 0${currentBgState}`;
+                }
+            });
+
+            // Volume Settings Slider Controller
+            volumeSlider.addEventListener('input', (e) => {
+                const vol = parseFloat(e.target.value);
+                bgVideo.volume = vol;
+                bgVideo.muted = vol === 0;
+                volumeReadout.textContent = `${Math.round(vol * 100)}%`;
+            });
+
+
+            // 3. SIDEBAR NAVIGATION DRAWER & ACCORDIONS
+            const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+            const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+            const sidebarDrawer = document.getElementById('sidebar-drawer');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+            function openSidebar() {
+                sidebarDrawer.classList.remove('-translate-x-full');
+                sidebarBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            function closeSidebar() {
+                sidebarDrawer.classList.add('-translate-x-full');
+                sidebarBackdrop.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            sidebarToggleBtn.addEventListener('click', openSidebar);
+            sidebarCloseBtn.addEventListener('click', closeSidebar);
+            sidebarBackdrop.addEventListener('click', closeSidebar);
+
+            // Expandable Accordions
+            document.querySelectorAll('.sidebar-acc-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const content = btn.nextElementSibling;
+                    const chevron = btn.querySelector('[data-lucide="chevron-down"]');
+                    
+                    const isHidden = content.classList.contains('hidden');
+                    document.querySelectorAll('.sidebar-acc-content').forEach(c => c.classList.add('hidden'));
+                    document.querySelectorAll('.sidebar-acc-btn [data-lucide="chevron-down"]').forEach(i => i.style.transform = 'rotate(0deg)');
+
+                    if (isHidden) {
+                        content.classList.remove('hidden');
+                        if (chevron) chevron.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.sidebar-nav-close').forEach(link => {
+                link.addEventListener('click', closeSidebar);
+            });
+
+
+            // 4. CUSTOM CURSOR
+            const cursorDot = document.getElementById('cursor-dot');
+            const cursorRing = document.getElementById('cursor-ring');
+            let mouseX = -100, mouseY = -100;
+            let ringX = -100, ringY = -100;
+
+            if (window.matchMedia('(pointer: fine)').matches) {
+                window.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX; mouseY = e.clientY;
+                    cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+                });
+
+                function updateCursor() {
+                    ringX += (mouseX - ringX) * 0.15;
+                    ringY += (mouseY - ringY) * 0.15;
+                    cursorRing.style.transform = `translate(${ringX}px, ${ringY}px) translate(-50%, -50%)`;
+                    requestAnimationFrame(updateCursor);
+                }
+                updateCursor();
+
+                document.querySelectorAll('a, button, input, [data-magnetic]').forEach(el => {
+                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+                });
+            }
+
+
+            // 5. INTERESTS INJECTION
+            const interestsContainer = document.getElementById('interests-container');
+            const interestDetailPanel = document.getElementById('interest-detail-panel');
+            const interestDetailTitle = document.getElementById('interest-detail-title');
+            const interestDetailDesc = document.getElementById('interest-detail-desc');
+            const interestDetailTags = document.getElementById('interest-detail-tags');
+
+            INTERESTS_DATA.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel rounded-2xl p-6 transition-all duration-300 hover:border-cyan-500/50 cursor-pointer group relative overflow-hidden';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">${item.category}</span>
+                        <i data-lucide="${item.icon}" class="w-5 h-5 text-lab-muted group-hover:text-cyan-400 transition-colors"></i>
+                    </div>
+                    <h3 class="font-display font-bold text-lg text-white mb-2 group-hover:text-cyan-300 transition-colors">${item.title}</h3>
+                    <p class="text-xs text-lab-muted leading-relaxed mb-4">${item.desc}</p>
+                `;
+
+                card.addEventListener('click', () => {
+                    interestDetailTitle.textContent = item.title;
+                    interestDetailDesc.textContent = item.desc;
+                    interestDetailTags.innerHTML = item.connections.map(c => `<span class="px-2.5 py-1 rounded bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono">${c}</span>`).join('');
+                    interestDetailPanel.classList.remove('hidden');
+                });
+
+                interestsContainer.appendChild(card);
+            });
+
+            document.getElementById('interest-detail-close').addEventListener('click', () => {
+                interestDetailPanel.classList.add('hidden');
+            });
+
+
+            // 6. PROJECTS CAROUSEL INJECTION
+            const carouselTrack = document.getElementById('carousel-track');
+            let currentProjIdx = 0;
+
+            PROJECTS_DATA.forEach(proj => {
+                const card = document.createElement('div');
+                card.className = 'carousel-card min-w-[280px] sm:min-w-[340px] glass-panel rounded-2xl p-6 flex flex-col justify-between border border-white/10';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center font-mono text-xs text-cyan-400 mb-3">
+                            <span>${proj.id}</span>
+                            <span class="text-[10px] text-slate-400">${proj.status}</span>
+                        </div>
+                        <h4 class="font-display font-bold text-xl text-white mb-2">${proj.title}</h4>
+                        <div class="text-[10px] font-mono text-lab-muted mb-3 uppercase tracking-wider">${proj.category}</div>
+                        <p class="text-xs text-lab-muted leading-relaxed mb-6">${proj.desc}</p>
+                    </div>
+                    <div>
+                        <a href="${proj.link}" target="_blank" class="btn-animate w-full py-2.5 rounded-xl bg-white/5 hover:bg-cyan-500 hover:text-black border border-white/10 text-xs font-mono text-white flex items-center justify-center gap-2">
+                            <span>INSPECT CODE</span>
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                `;
+                carouselTrack.appendChild(card);
+            });
+
+            document.getElementById('carousel-next').addEventListener('click', () => {
+                if (currentProjIdx < PROJECTS_DATA.length - 1) {
+                    currentProjIdx++;
+                    carouselTrack.style.transform = `translateX(-${currentProjIdx * 320}px)`;
+                }
+            });
+
+            document.getElementById('carousel-prev').addEventListener('click', () => {
+                if (currentProjIdx > 0) {
+                    currentProjIdx--;
+                    carouselTrack.style.transform = `translateX(-${currentProjIdx * 320}px)`;
+                }
+            });
+
+
+            // 7. EXPERIMENTS GRID INJECTION
+            const experimentsGrid = document.getElementById('experiments-grid');
+            EXPERIMENTS_DATA.forEach(exp => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel rounded-2xl p-6 relative border border-white/10 hover:border-cyan-500/30 transition-all';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center font-mono text-xs text-lab-muted mb-3">
+                        <span class="text-cyan-400 font-bold">${exp.id}</span>
+                        <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px]">${exp.field}</span>
+                    </div>
+                    <h4 class="font-display font-bold text-base text-white mb-2">${exp.title}</h4>
+                    <p class="text-xs text-lab-muted leading-relaxed mb-4">${exp.desc}</p>
+                    <div class="flex items-center gap-2 font-mono text-[10px] text-emerald-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        <span>STATUS: ${exp.status}</span>
+                    </div>
+                `;
+                experimentsGrid.appendChild(card);
+            });
+
+
+            // 8. CLI TERMINAL
+            const terminalModal = document.getElementById('terminal-modal');
+            const terminalToggle = document.getElementById('terminal-toggle');
+            const openTerminalBtnContact = document.getElementById('open-terminal-btn-contact');
+            const termCloseBtn = document.getElementById('term-close-btn');
+            const terminalForm = document.getElementById('terminal-form');
+            const terminalInput = document.getElementById('terminal-input');
+            const terminalOutput = document.getElementById('terminal-output');
+
+            function openTerminal() {
+                terminalModal.classList.remove('opacity-0', 'pointer-events-none');
+                terminalInput.focus();
+            }
+
+            function closeTerminal() {
+                terminalModal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            terminalToggle.addEventListener('click', openTerminal);
+            openTerminalBtnContact.addEventListener('click', openTerminal);
+            termCloseBtn.addEventListener('click', closeTerminal);
+
+            terminalForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const cmd = terminalInput.value.trim().toLowerCase();
+                if (!cmd) return;
+
+                const cmdLine = document.createElement('div');
+                cmdLine.className = 'text-white font-bold';
+                cmdLine.textContent = `> ${cmd}`;
+                terminalOutput.appendChild(cmdLine);
+
+                if (cmd === 'help') {
+                    const resp = document.createElement('div');
+                    resp.className = 'text-cyan-300 ml-2';
+                    resp.textContent = 'Commands: about, projects, github, clear';
+                    terminalOutput.appendChild(resp);
+                } else if (cmd === 'clear') {
+                    terminalOutput.innerHTML = '';
+                } else {
+                    const resp = document.createElement('div');
+                    resp.className = 'text-slate-400 ml-2';
+                    resp.textContent = `Executed: ${cmd}`;
+                    terminalOutput.appendChild(resp);
+                }
+
+                terminalInput.value = '';
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            });
+
+
+            // 9. THEME TOGGLE
+            const themeToggle = document.getElementById('theme-toggle');
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('light');
+                document.documentElement.classList.toggle('dark');
+            });
+
+
+            // 10. SCROLL PROGRESS
+            const scrollProgressBar = document.getElementById('scroll-progress-bar');
+            const scrollPercentage = document.getElementById('scroll-percentage');
+
+            window.addEventListener('scroll', () => {
+                const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = (window.scrollY / totalHeight) * 100;
+                if (scrollProgressBar) scrollProgressBar.style.height = `${progress}%`;
+                if (scrollPercentage) scrollPercentage.textContent = `${Math.round(progress).toString().padStart(3, '0')}%`;
+            });
+
+        });
+    </script>
+</body>
+</html>
