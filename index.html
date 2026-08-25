@@ -2731,23 +2731,20 @@ const MODEL_URL =
 
 const PINCH_ON = 0.055;
 const PINCH_OFF = 0.09;
-const SMOOTH = 0.16;
+const SMOOTH = 0.35;
 const CLICK_COOLDOWN = 400;
 const MAGNET_R = 70;      // px, snap radius around interactive targets
 const DWELL_MS = 900;     // hover-lock time before auto-select
 const TARGET_SEL = "a,button,[role='button'],.nav-link,.node-toggle,.tag";
 
-const SCROLL_SENS = 1.1;    // drag-scroll speed multiplier
-const SCROLL_MAX = 26;      // clamp px/frame so it never jumps
+const SCROLL_SENS = 4;      // drag-scroll speed multiplier
 const FIST_COOLDOWN = 700;  // ms between back-gesture triggers
-const SB_ZONE = 70;         // px from right edge that counts as "near slider"
 
 let landmarker=null, stream=null, raf=0, lastVideoTime=-1;
 let active=false, previewOn=true, pinched=false, lastClick=0;
 let cx=innerWidth/2, cy=innerHeight/2;
 let targets=[], locked=null, lockedAt=0;
 let mode="point", prevMode="point", lastPalmY=0, lastFist=0;
-let sbDragging=false, sbMouseDragging=false;
 
 /* ---------- audio (self-contained, no page coupling) ---------- */
 let actx=null;
@@ -2815,23 +2812,14 @@ ui.innerHTML = `
 }
 #gn-legend b{ color:var(--gn-blue); }
 
-#gn-reticle{ position:fixed; z-index:9999; width:46px; height:46px; pointer-events:none; display:none; transform:translate(-50%,-50%); }
+#gn-reticle{ position:fixed; z-index:9999; width:34px; height:34px; pointer-events:none; display:none; transform:translate(-50%,-50%); }
 #gn-reticle svg{ width:100%; height:100%; overflow:visible; }
-#gn-reticle .gn-ring{ transform-origin:center; animation:gn-spin 4.5s linear infinite; stroke:#8fb4ff; transition:stroke .2s; }
+#gn-reticle .gn-ring{ transform-origin:center; animation:gn-spin 3.2s linear infinite; stroke:#8fb4ff; }
 @keyframes gn-spin{ to{ transform:rotate(360deg); } }
 #gn-reticle.locked .gn-ring{ stroke:var(--gn-gold); }
 #gn-reticle.mode-scroll .gn-ring{ stroke:#7be38a; }
 #gn-reticle.mode-fist .gn-ring{ stroke:#ff6b6b; }
-#gn-reticle .gn-dwell{ stroke:var(--gn-gold); stroke-dasharray:100.5; stroke-dashoffset:100.5; transition:stroke-dashoffset linear; }
-#gn-reticle .gn-pinch{ stroke:#8fb4ff; stroke-dasharray:62.8; stroke-dashoffset:62.8; transition:stroke-dashoffset .08s linear, opacity .15s; opacity:0; }
-#gn-reticle.mode-point .gn-pinch{ opacity:.8; }
-#gn-reticle .gn-center{ transform-origin:center; transition:r .12s ease, fill .12s; }
-#gn-reticle.pulse .gn-center{ animation:gn-centerpulse .35s ease; }
-@keyframes gn-centerpulse{ 0%{ r:1.8; } 40%{ r:5; fill:var(--gn-gold); } 100%{ r:1.8; } }
-#gn-reticle .gn-chev{ opacity:.15; transition:opacity .15s; }
-#gn-reticle .gn-back-icon{ opacity:0; transition:opacity .15s; }
-#gn-reticle.mode-fist .gn-back-icon{ opacity:1; }
-#gn-reticle.mode-fist.pulse .gn-back-icon{ animation:gn-centerpulse .35s ease; }
+#gn-reticle .gn-dwell{ stroke:var(--gn-gold); stroke-dasharray:75.4; stroke-dashoffset:75.4; transition:stroke-dashoffset linear; }
 
 .gn-lockbox{ position:fixed; z-index:9997; pointer-events:none; opacity:0; transition:opacity .15s; }
 .gn-lockbox.show{ opacity:1; }
@@ -2851,23 +2839,6 @@ ui.innerHTML = `
   animation:gn-ping .55s ease-out forwards;
 }
 @keyframes gn-ping{ from{ transform:scale(1); opacity:.9; } to{ transform:scale(4.5); opacity:0; } }
-
-#gn-scroll-zone{
-  position:fixed; z-index:9997; right:0; top:0; bottom:0; width:34px;
-  display:flex; justify-content:center; touch-action:none;
-}
-#gn-scroll-zone .gn-track{
-  width:4px; margin:8px 0; border-radius:3px; background:rgba(154,164,187,.18);
-  opacity:0; transition:opacity .25s, width .15s; position:relative; cursor:pointer;
-}
-#gn-scroll-zone:hover .gn-track,
-#gn-scroll-zone.active .gn-track{ opacity:1; width:6px; }
-#gn-scroll-zone .gn-thumb{
-  position:absolute; left:0; width:100%; border-radius:3px;
-  background:linear-gradient(180deg,var(--gn-blue),var(--gn-gold)); min-height:30px;
-  box-shadow:0 0 6px rgba(143,180,255,.4); transition:box-shadow .15s;
-}
-#gn-scroll-zone.active .gn-thumb{ box-shadow:0 0 12px rgba(216,184,114,.6); }
 
 #gn-flash{
   position:fixed; z-index:9999; top:26px; left:50%; transform:translateX(-50%) translateY(-8px);
@@ -2892,20 +2863,15 @@ ui.innerHTML = `
   <div><b>FIST</b> — back / close</div>
 </div>
 <div id="gn-flash"></div>
-<div id="gn-scroll-zone"><div class="gn-track"><div class="gn-thumb"></div></div></div>
 <div id="gn-reticle">
-  <svg viewBox="0 0 44 44">
-    <circle class="gn-ring" cx="22" cy="22" r="16" fill="none" stroke="#8fb4ff" stroke-width="1.6" stroke-dasharray="7 5"/>
-    <circle class="gn-dwell" cx="22" cy="22" r="16" fill="none" stroke-width="2.6" stroke-dasharray="100.5" stroke-dashoffset="100.5" transform="rotate(-90 22 22)"/>
-    <circle class="gn-pinch" cx="22" cy="22" r="10" fill="none" stroke-width="2.2" stroke-dasharray="62.8" stroke-dashoffset="62.8" transform="rotate(-90 22 22)"/>
-    <line x1="22" y1="4" x2="22" y2="9" stroke="#eef1f7" stroke-width="1.4"/>
-    <line x1="22" y1="35" x2="22" y2="40" stroke="#eef1f7" stroke-width="1.4"/>
-    <line x1="4" y1="22" x2="9" y2="22" stroke="#eef1f7" stroke-width="1.4"/>
-    <line x1="35" y1="22" x2="40" y2="22" stroke="#eef1f7" stroke-width="1.4"/>
-    <path id="gn-chev-up" class="gn-chev" d="M22 1 L18 8 L26 8 Z" fill="#7be38a"/>
-    <path id="gn-chev-down" class="gn-chev" d="M22 43 L18 36 L26 36 Z" fill="#7be38a"/>
-    <path class="gn-back-icon" d="M15 22 a7 7 0 1 0 2.5 -5.3 M15 22 l0 -6 M15 22 l6 1" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle class="gn-center" cx="22" cy="22" r="1.8" fill="#eef1f7"/>
+  <svg viewBox="0 0 34 34">
+    <circle class="gn-ring" cx="17" cy="17" r="12" fill="none" stroke="#8fb4ff" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <circle class="gn-dwell" cx="17" cy="17" r="12" fill="none" stroke-width="2.4" transform="rotate(-90 17 17)"/>
+    <line x1="17" y1="3" x2="17" y2="8" stroke="#eef1f7" stroke-width="1.4"/>
+    <line x1="17" y1="26" x2="17" y2="31" stroke="#eef1f7" stroke-width="1.4"/>
+    <line x1="3" y1="17" x2="8" y2="17" stroke="#eef1f7" stroke-width="1.4"/>
+    <line x1="26" y1="17" x2="31" y2="17" stroke="#eef1f7" stroke-width="1.4"/>
+    <circle cx="17" cy="17" r="1.6" fill="#eef1f7"/>
   </svg>
 </div>
 </div>`;
@@ -2920,16 +2886,11 @@ const $dotStatus=document.getElementById("gn-dotstatus");
 const $targetLbl=document.getElementById("gn-target");
 const $reticle=document.getElementById("gn-reticle");
 const $dwellRing=$reticle.querySelector(".gn-dwell");
-const $pinchRing=$reticle.querySelector(".gn-pinch");
-const $chevUp=document.getElementById("gn-chev-up");
-const $chevDown=document.getElementById("gn-chev-down");
 const $flash=document.getElementById("gn-flash");
 const $legend=document.getElementById("gn-legend");
 const video=document.getElementById("gn-video");
 const lmCanvas=document.getElementById("gn-landmarks");
 const lmCtx=lmCanvas.getContext("2d");
-const $sbZone=document.getElementById("gn-scroll-zone");
-const $sbThumb=$sbZone.querySelector(".gn-thumb");
 let $lockbox=null;
 
 /* ---------- helpers ---------- */
@@ -2946,31 +2907,6 @@ function drawLandmarks(l){
     lmCtx.fill();
   }
 }
-
-/* ---------- right-edge scroll slider (mouse + gesture pinch-drag) ---------- */
-function updateThumb(){
-  var doc=document.documentElement;
-  var max=doc.scrollHeight-innerHeight;
-  var pct = max>0 ? doc.scrollTop/max : 0;
-  var trackH=innerHeight-16; // matches .gn-track margin:8px 0
-  var thumbH=Math.max(30, trackH*(innerHeight/doc.scrollHeight));
-  $sbThumb.style.height=thumbH+"px";
-  $sbThumb.style.top=(pct*(trackH-thumbH))+"px";
-}
-function scrubScroll(clientY){
-  var doc=document.documentElement;
-  var max=doc.scrollHeight-innerHeight;
-  var pct=Math.max(0,Math.min(1, clientY/innerHeight));
-  doc.scrollTop=pct*max;
-  updateThumb();
-}
-addEventListener("scroll", updateThumb, {passive:true});
-addEventListener("resize", updateThumb);
-updateThumb();
-
-$sbZone.addEventListener("pointerdown", e=>{ sbMouseDragging=true; scrubScroll(e.clientY); $sbZone.setPointerCapture(e.pointerId); });
-$sbZone.addEventListener("pointermove", e=>{ if(sbMouseDragging) scrubScroll(e.clientY); });
-addEventListener("pointerup", ()=> sbMouseDragging=false);
 
 function refreshTargets(){
   targets = Array.from(document.querySelectorAll(TARGET_SEL)).map(el=>{
@@ -3060,8 +2996,6 @@ function select(){
   flashText("ACCESSING: "+targetLabel(el));
   el.click();
   lockedAt=now+9999; // pause dwell briefly post-click
-  $reticle.classList.add("pulse");
-  setTimeout(()=>$reticle.classList.remove("pulse"),350);
 }
 
 function goBack(){
@@ -3089,65 +3023,38 @@ function process(){
       var idx=fingerUp(l,8,6), mid=fingerUp(l,12,10), ring=fingerUp(l,16,14), pinky=fingerUp(l,20,18);
       var count=[idx,mid,ring,pinky].filter(Boolean).length;
       mode = count>=4 ? "scroll" : count===0 ? "fist" : "point";
-      $reticle.classList.remove("mode-scroll","mode-fist","mode-point");
-      $reticle.classList.add("mode-"+mode);
-      if(mode!=="scroll"){ $chevUp.style.opacity=0.15; $chevDown.style.opacity=0.15; }
+      $reticle.classList.remove("mode-scroll","mode-fist");
 
       if(mode==="point"){
         moveCursor(l[8].x,l[8].y);
         var d=dist(l[4],l[8]);
-        var pinchPct=Math.max(0,Math.min(1,(PINCH_OFF-d)/(PINCH_OFF-PINCH_ON)));
-        $pinchRing.style.strokeDashoffset=62.8*(1-pinchPct);
+        if(!pinched && d<PINCH_ON){ pinched=true; select(); }
+        else if(pinched && d>PINCH_OFF){ pinched=false; }
 
-        var nearSB = cx > innerWidth-SB_ZONE;
-        $sbZone.classList.toggle("active", nearSB || sbDragging);
-
-        if(nearSB || sbDragging){
-          setLock(null); // slider takes over, no nav-target lock here
-          $dwellRing.style.strokeDashoffset=100.5;
-          if(!pinched && d<PINCH_ON){ pinched=true; sbDragging=true; beep(700,0.03,0.12); }
-          else if(pinched && d>PINCH_OFF){ pinched=false; sbDragging=false; }
-          if(sbDragging) scrubScroll(cy);
+        // dwell-to-select fallback when no pinch used
+        if(locked){
+          var held=performance.now()-lockedAt;
+          var pct=Math.min(held/DWELL_MS,1);
+          $dwellRing.style.strokeDashoffset=75.4*(1-pct);
+          if(pct>=1) select();
         } else {
-          sbDragging=false;
-          if(!pinched && d<PINCH_ON){ pinched=true; select(); }
-          else if(pinched && d>PINCH_OFF){ pinched=false; }
-
-          // dwell-to-select fallback when no pinch used
-          if(locked){
-            var held=performance.now()-lockedAt;
-            var pct=Math.min(held/DWELL_MS,1);
-            $dwellRing.style.strokeDashoffset=100.5*(1-pct);
-            if(pct>=1) select();
-          } else {
-            $dwellRing.style.strokeDashoffset=100.5;
-          }
+          $dwellRing.style.strokeDashoffset=75.4;
         }
       } else {
-        $sbZone.classList.remove("active");
-        sbDragging=false;
         setLock(null); // no target-lock outside point mode
-        $dwellRing.style.strokeDashoffset=100.5;
+        $dwellRing.style.strokeDashoffset=75.4;
         var px=(1-l[9].x)*innerWidth, py=l[9].y*innerHeight; // palm center (mirrored)
         positionReticle(px,py);
 
         if(mode==="scroll"){
           $reticle.classList.add("mode-scroll");
           if(prevMode!=="scroll") lastPalmY=py; // avoid jump on entry
-          var sDelta=(lastPalmY-py)*SCROLL_SENS;
-          sDelta=Math.max(-SCROLL_MAX,Math.min(SCROLL_MAX,sDelta));
-          window.scrollBy(0, sDelta);
-          $chevUp.style.opacity = sDelta<-0.3 ? 1 : 0.15;
-          $chevDown.style.opacity = sDelta>0.3 ? 1 : 0.15;
+          window.scrollBy(0, (lastPalmY-py)*SCROLL_SENS);
           lastPalmY=py;
         } else if(mode==="fist"){
           $reticle.classList.add("mode-fist");
           var now=performance.now();
-          if(prevMode!=="fist" && now-lastFist>FIST_COOLDOWN){
-            lastFist=now; goBack();
-            $reticle.classList.add("pulse");
-            setTimeout(()=>$reticle.classList.remove("pulse"),350);
-          }
+          if(prevMode!=="fist" && now-lastFist>FIST_COOLDOWN){ lastFist=now; goBack(); }
         }
       }
       prevMode=mode;
@@ -3155,7 +3062,7 @@ function process(){
       $track.textContent=mode.toUpperCase(); $dotStatus.style.background="#4caf50";
     } else {
       $track.textContent="NO SIGNAL"; $dotStatus.style.background="#555";
-      $dwellRing.style.strokeDashoffset=100.5;
+      $dwellRing.style.strokeDashoffset=75.4;
       setLock(null);
       lmCtx.clearRect(0,0,lmCanvas.width,lmCanvas.height);
     }
@@ -3210,8 +3117,6 @@ function stop(){
   lmCtx.clearRect(0,0,lmCanvas.width,lmCanvas.height);
   setLock(null);
   pinched=false;
-  sbDragging=false;
-  $sbZone.classList.remove("active");
   shutdownChime();
 }
 
