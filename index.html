@@ -202,7 +202,7 @@ details.acc summary{list-style:none;cursor:pointer;display:flex;align-items:cent
 details.acc summary::-webkit-details-marker{display:none}
 details.acc summary img{width:28px;height:28px;flex:0 0 auto}
 details.acc summary::after{content:'+';margin-left:auto;font:700 1.3rem var(--f-ten);color:var(--gold);transition:transform .25s}
-details.acc[open] summary::after{content:'-'}
+details.acc[open] summary::after{transform:rotate(45deg)}
 details.acc summary:hover{color:#ffff55;background:rgba(255,255,255,.05)}
 details.acc .ab{padding:2px 16px 14px 54px;color:var(--text-dim);font-size:.92rem}
 details.acc .ab p{margin:0 0 8px}
@@ -451,14 +451,14 @@ var HOBBIES=[
 ["Psychology","items/book_enchanted.png","How people actually decide things, versus how they say they do.","Mind"],
 ["Neuroscience","items/nether_star.png","The wiring behind thought, attention, and habit.","Mind"],
 ["Philosophy","items/book_written.png","Poking at assumptions most people leave alone.","Mind"],
-["Computers","blocks/redstone_lamp_on.png","Systems, from the silicon up to the interface.","Tech"],
+["Computers","items/comparator.png","Systems, from the silicon up to the interface.","Tech"],
 ["Programming","items/book_writable.png","The main tool for turning ideas into something that runs.","Tech"],
-["Electrical Engineering","items/copper_ingot.png","Circuits, signals, and the physical side of logic.","Hardware"],
-["Mechatronics","items/compass_item.png","Where mechanical parts and code have to agree.","Hardware"],
+["Electrical Engineering","items/repeater.png","Circuits, signals, and the physical side of logic.","Hardware"],
+["Mechatronics","blocks/piston_top_normal.png","Where mechanical parts and code have to agree.","Hardware"],
 ["Game Development","items/diamond.png","Building small interactive worlds from scratch.","Tech"],
 ["Minecraft Bedrock Addons","blocks/crafting_table_front.png","Modding a familiar world into something new. Scripting, custom mechanics, automation, and gameplay systems, built to push Bedrock past its vanilla limits.","Tech"],
-["Electronics","items/clock_item.png","Breadboards, components, and things that spark.","Hardware"],
-["AI","items/ender_eye.png","Models, behavior, and the edges of what they can do.","Tech"],
+["Electronics","items/redstone_dust.png","Breadboards, components, and things that spark.","Hardware"],
+["AI","blocks/observer_front.png","Models, behavior, and the edges of what they can do.","Tech"],
 ["Art","items/brush.png","Visual thinking, used as a break from logical thinking.","Creative"],
 ["Artistic Design","items/painting.png","Shaping how something looks and feels, not just how it works.","Creative"],
 ["Modding","items/iron_pickaxe.png","Changing systems that were not built to be changed.","Tech"],
@@ -496,7 +496,7 @@ var IMGS=[],VIDS=[];
 for(var i=1;i<=8;i++)IMGS.push("backgroundsimages/background"+i+".webp");
 for(var j=1;j<=12;j++)VIDS.push("graphics"+j+".mp4");
 /* marquee + counters */
-var mq="";["diamond","emerald","ender_eye","nether_star","spyglass","amethyst_shard","book_enchanted","experience_bottle","brush","copper_ingot","iron_pickaxe","map_filled"].forEach(function(n){mq+='<img src="items/'+n+'.png" alt="">'});
+var mq="";["items/diamond","items/emerald","items/redstone_dust","blocks/piston_top_normal","items/nether_star","items/comparator","blocks/observer_front","items/repeater","items/spyglass","items/amethyst_shard","items/book_enchanted","items/experience_bottle","items/brush","items/iron_pickaxe"].forEach(function(n){mq+='<img src="'+n+'.png" alt="">'});
 $("#marq").innerHTML=mq+mq+mq+mq;
 var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;cio.unobserve(e.target);var el=e.target,n=+el.dataset.n,t0=performance.now();(function f(t){var p=Math.min(1,(t-t0)/1100);el.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)})},{threshold:.5});
 $$("[data-n]").forEach(function(el){cio.observe(el)});
@@ -750,7 +750,7 @@ ui.innerHTML = `
 <div id="gn-hud">
   <div class="gn-title">GESTURE-NAV</div>
   <div class="gn-row"><span id="gn-dotstatus"></span>TRACKING: <span id="gn-track">NO SIGNAL</span></div>
-  <div class="gn-row">TARGET: <span id="gn-target">-</span></div>
+  <div class="gn-row">TARGET: <span id="gn-target">NONE</span></div>
 </div>
 <div id="gn-widget"><video id="gn-video" autoplay playsinline muted></video><canvas id="gn-landmarks"></canvas><div class="gn-scan"></div></div>
 <div id="gn-legend">
@@ -829,7 +829,7 @@ function setLock(target){
   if(!target){
     box.classList.remove("show");
     $reticle.classList.remove("locked");
-    $targetLbl.textContent="-";
+    $targetLbl.textContent="NONE";
     return;
   }
   var r=target.r;
