@@ -181,7 +181,6 @@ h3{margin:0}
 .card:hover{transform:translateY(-6px)}
 .card .art{height:150px;background-size:cover;background-position:center;image-rendering:pixelated;border-bottom:3px solid #000;position:relative}
 .card .art b{position:absolute;top:8px;left:8px;background:#000;color:var(--green);font:700 .68rem var(--f-head);padding:2px 8px;letter-spacing:.1em}
-.card .art em{position:absolute;right:10px;bottom:6px;font:700 32px var(--f-ten);font-style:normal;color:#fff;text-shadow:3px 3px 0 #000}
 .card .body{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
 .card h3{font:700 1.1rem var(--f-head);color:var(--gold)}
 .card p{margin:0;font-size:.88rem;color:var(--text-dim);flex:1}
@@ -227,6 +226,45 @@ details.acc[open]>.ab{animation:open .3s var(--ease)}
 #lb button{position:absolute;background:#3a3a40;border:2px solid #000;box-shadow:var(--bevel);width:44px;height:44px;cursor:pointer;font-size:1.2rem}
 #lb .x{top:max(12px,env(safe-area-inset-top));right:12px}
 #lb .l{left:10px;top:50%}#lb .r{right:10px;top:50%}
+/* wheel */
+.cbx-wheel-wrap{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:30px;align-items:center;margin:8px 0}
+@media(max-width:860px){.cbx-wheel-wrap{grid-template-columns:minmax(0,1fr);justify-items:center}}
+.cbx-wheel{position:relative;width:100%;max-width:420px;aspect-ratio:1;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;margin:14px auto}
+.cbx-wheel:focus-visible{outline:2px solid var(--gold);outline-offset:8px;border-radius:50%}
+.cbx-ring{position:absolute;inset:0;--rot:0;transform:rotate(calc(var(--rot) * 1deg));transition:transform .75s cubic-bezier(.25,1.2,.4,1)}
+.cbx-ring svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.cbx-sec{fill:#2d2d32;stroke:#000;stroke-width:1.6;transition:fill .2s,stroke .2s}
+.cbx-sec.alt{fill:#38383e}.cbx-sec.hover{fill:#4b4b54}.cbx-sec.sel{fill:#6b4600;stroke:#ffaa00}
+.cbx-node{position:absolute;width:11%;aspect-ratio:1;pointer-events:none;transform:translate(-50%,-50%) rotate(calc(var(--rot) * -1deg));transition:transform .75s cubic-bezier(.25,1.2,.4,1)}
+.cbx-node img{width:100%;height:100%;display:block;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.55));transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+.cbx-node.sel img{transform:scale(1.4);animation:nodebob 1.6s ease-in-out infinite}
+@keyframes nodebob{0%,100%{translate:0 0}50%{translate:0 -3px}}
+.cbx-pointer{position:absolute;left:50%;top:-3.4%;width:0;height:0;z-index:3;pointer-events:none;transform:translateX(-50%);border-left:10px solid transparent;border-right:10px solid transparent;border-top:14px solid #ffaa00;filter:drop-shadow(2px 2px 0 #000);transition:opacity .5s}
+.cbx-wheel.drifting .cbx-pointer{opacity:.25}
+.cbx-wheel.drifting .cbx-ring,.cbx-wheel.drifting .cbx-node{transition:none}
+.cbx-hub{position:absolute;left:50%;top:50%;width:44%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:2;pointer-events:none;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4d4d56,#1f1f24 72%);border:3px solid #000;box-shadow:inset 3px 3px 0 rgba(255,255,255,.18),inset -3px -3px 0 rgba(0,0,0,.5),0 0 0 3px #000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
+.cbx-hub img{width:34%;height:auto;aspect-ratio:1;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.5))}
+.cbx-hub .nm{font:700 clamp(.62rem,2.6vw,.95rem)/1.15 var(--f-head);color:#fff;text-shadow:2px 2px 0 #333;padding:0 9%}
+.cbx-hub.pop img,.cbx-hub.pop .nm{animation:pop .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.cbx-spinbtn{position:absolute;right:-6px;bottom:-6px;z-index:4;width:38px;height:38px;padding:0;cursor:pointer;display:grid;place-items:center;border:2px solid #000;background:#6f6f6f;color:#fff;box-shadow:inset 2px 2px 0 #b0b0b0,inset -2px -2px 0 #3d3d3d}
+.cbx-spinbtn:hover{color:#ffff55}
+.cbx-spinbtn svg{width:16px;height:16px}
+.cbx-spinbtn .pl{display:none}
+.cbx-spinbtn[aria-pressed=true] .pa{display:none}
+.cbx-spinbtn[aria-pressed=true] .pl{display:inline}
+.cbx-detail{padding:20px;background:var(--panel-glass);border:3px solid #000;box-shadow:var(--bevel);display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:220px;width:100%;min-width:0}
+.cbx-detail h3{font:700 1.4rem var(--f-head);color:var(--gold);text-shadow:3px 3px 0 #3b2600}
+.cbx-detail p{margin:0}
+.cbx-detail .meta{font-size:.8rem;color:var(--text-dim)}
+.cbx-detail .tg{background:#000;padding:1px 10px;font-size:.75rem;color:var(--green)}
+.cbx-detail .ab{font-size:.9rem;color:var(--text-dim)}
+.cbx-detail .ab p{margin:0 0 6px}
+.cbx-detail .ab ul{margin:0;padding-left:18px}
+.cbx-detail.swap>*{animation:slide .35s ease both}
+@keyframes slide{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.cbx-hold{width:100%;height:4px;margin-top:auto;background:rgba(0,0,0,.5);box-shadow:0 0 0 1px #000}
+.cbx-hold i{display:block;height:100%;width:100%;background:#7efc20;transform-origin:left;transform:scaleX(0)}
 /* misc */
 .empty{display:flex;align-items:center;gap:16px}
 .empty img{width:52px;height:52px;flex:0 0 auto;animation:float 3s ease-in-out infinite alternate;--r0:-6deg;--r1:6deg}
@@ -292,7 +330,7 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <div class="hint"><img src="items/compass_item.png" width="22" height="22" alt="">Scroll to explore. Reroll the world with the circle, open pages with the menu.</div>
 </section>
 <div class="wrap tight"><div class="stats">
-<div class="panel stat reveal"><b data-n="7">0</b><span>Projects</span></div>
+<div class="panel stat reveal"><b data-n="8">0</b><span>Projects</span></div>
 <div class="panel stat reveal"><b data-n="17">0</b><span>Open threads</span></div>
 <div class="panel stat reveal"><b data-n="5">0</b><span>Seasons built</span></div>
 <div class="panel stat reveal"><b data-n="6">0</b><span>Player classes</span></div>
@@ -304,7 +342,7 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <div class="cols reveal">
 <div class="panel">
 <p>Legend is a <strong>student</strong>, a <strong>developer</strong>, and a <strong>builder</strong> who spends most of his time taking things apart or building stuff to understand how they work, then putting them back together differently.</p>
-<p>The work moves across code, hardware, and half-finished machines too! Some of it ships. Most of it is the residue of asking <strong>what happens if</strong>, and following the answer wherever it leads.</p>
+<p>The work moves across code, hardware, and unfinished machines too! Some of it ships. Most of it is the residue of asking <strong>what happens if</strong>, and following the answer wherever it leads.</p>
 <div class="chips"><span class="chip">Student</span><span class="chip">Developer</span><span class="chip">Builder</span><span class="chip">Experimentalist</span><span class="chip">Curious Learner</span></div>
 <p style="margin-top:16px"><a class="btn sm" href="#/about">Open the About page</a></p>
 </div>
@@ -325,14 +363,15 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <p class="eyebrow reveal">03 / Archive</p>
 <h2 class="t reveal">Things that got built.</h2>
 <p class="lede reveal">A working record of Minecraft Bedrock projects, built and maintained under the alias Crusaderly. Drag, scroll or use the arrows.</p>
+<div class="reveal" id="wheel-home" style="margin-bottom:22px"></div>
 <div class="reveal"><div class="track" id="track" tabindex="0" aria-label="Projects"></div>
-<div class="ctrl"><button class="btn sm" id="prev" type="button" aria-label="Previous project">&lt;</button><button class="btn sm" id="next" type="button" aria-label="Next project">&gt;</button><span class="rd" id="rd">01 / 07</span><a class="btn sm" href="#/projects">See all</a></div></div>
+<div class="ctrl"><button class="btn sm" id="prev" type="button" aria-label="Previous project">&lt;</button><button class="btn sm" id="next" type="button" aria-label="Next project">&gt;</button><span class="rd" id="rd">01 / 08</span><a class="btn sm" href="#/projects">See all</a></div></div>
 </div>
 <div class="wrap">
 <p class="eyebrow reveal">04 / Spotlight</p>
 <div class="panel reveal">
 <h2 class="t" style="margin-bottom:10px">CrusadersBedrock</h2>
-<p>A massive Bedrock addon packed with custom mechanics, machines, events, pets, abilities and more. Seasons, random classes, soul chests, grappling hooks, tree capitator, custom redstone and a built-in WorldEdit.</p>
+<p>A massive Bedrock addon packed with custom mechanics, machines, events, pets, abilities and more. Seasons, random classes, soul chests, grappling hooks, tree capitator, custom redstone and a bundled WorldEdit.</p>
 <div class="chips"><span class="chip">Seasons</span><span class="chip">Random Classes</span><span class="chip">Soul Chests</span><span class="chip">Grappling Hooks</span><span class="chip">Custom Redstone</span><span class="chip">Pets</span></div>
 <div class="row" style="margin-top:16px"><a class="btn gold" href="#/crusadersbedrock">Open project page</a><a class="btn" href="https://github.com/itsthemodder/CrusadersBedrock" target="_blank" rel="noopener noreferrer">GitHub</a></div>
 </div>
@@ -359,6 +398,7 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <p class="crumb"><a href="#/">HOME</a> / PROJECTS</p>
 <p class="eyebrow">Archive</p><h2 class="t">All projects.</h2>
 <p class="lede">Minecraft Bedrock addons, packs and scripts, built and maintained under the alias Crusaderly. Filter by tag.</p>
+<div id="wheel-proj" style="margin-bottom:22px"></div>
 <div class="filters" id="filters"></div>
 <div class="grid" id="pgrid"></div>
 </div></div>
@@ -372,6 +412,8 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <div class="row"><a class="btn gold" href="https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrock" target="_blank" rel="noopener noreferrer">CurseForge</a><a class="btn" href="https://github.com/itsthemodder/CrusadersBedrock" target="_blank" rel="noopener noreferrer">GitHub</a><a class="btn" href="https://itsthemodder.github.io/CrusadersBedrock/" target="_blank" rel="noopener noreferrer">Project site</a><a class="btn" href="https://itsthemodder.github.io/CB-Costomiser/" target="_blank" rel="noopener noreferrer">Customiser</a></div>
 </div>
 <div class="feat" style="margin-bottom:22px"><div><b>5</b><span>Seasons</span></div><div><b>6</b><span>Classes</span></div><div><b>4</b><span>Redstone blocks</span></div><div><b>15</b><span>Placer modes</span></div><div><b>2</b><span>Pets</span></div></div>
+<p class="eyebrow">Feature wheel (tap a slice)</p>
+<div id="wheel-feat" style="margin-bottom:22px"></div>
 <p class="eyebrow">Features (tap to expand)</p>
 <div id="acc"></div>
 </div></div>
@@ -382,7 +424,7 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <div class="cols" style="margin-bottom:18px">
 <div class="panel">
 <p>Legend is a <strong>student</strong>, a <strong>developer</strong>, and a <strong>builder</strong> who spends most of his time taking things apart or building stuff to understand how they work, then putting them back together differently.</p>
-<p>The work moves across code, hardware, and half-finished machines too! Some of it ships. Most of it is the residue of asking <strong>what happens if</strong>, and following the answer wherever it leads.</p>
+<p>The work moves across code, hardware, and unfinished machines too! Some of it ships. Most of it is the residue of asking <strong>what happens if</strong>, and following the answer wherever it leads.</p>
 <p>There is no fixed discipline here, just an ongoing habit of learning by building, and an interest in the point where different fields start to overlap.</p>
 <div class="chips"><span class="chip">Student</span><span class="chip">Developer</span><span class="chip">Builder</span><span class="chip">Experimentalist</span><span class="chip">Curious Learner</span></div>
 </div>
@@ -408,7 +450,7 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <div class="page" data-page="gallery" hidden><div class="wrap">
 <p class="crumb"><a href="#/">HOME</a> / GALLERY</p>
 <p class="eyebrow">Gallery</p><h2 class="t">Worlds worth looking at.</h2>
-<p class="lede">Tap any picture to enlarge it. Arrow keys and swipe-free buttons move between shots.</p>
+<p class="lede">Tap any picture to enlarge it. Arrow keys and the side buttons move between shots.</p>
 <p class="eyebrow">Landscapes</p>
 <div class="gal wide" id="gal-bg" style="margin-bottom:26px"></div>
 <p class="eyebrow">Paintings</p>
@@ -425,6 +467,7 @@ footer{max-width:1180px;margin:30px auto 0;padding:20px 6vw 40px;display:flex;fl
 <div class="grid">
 <a class="panel" href="https://www.curseforge.com/members/crusaderly/projects" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><strong>CurseForge</strong><br><span style="color:var(--text-dim)">Every published addon, pack and script.</span></a>
 <a class="panel" href="https://github.com/itsthemodder/CrusadersBedrock" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><strong>GitHub</strong><br><span style="color:var(--text-dim)">Source and readme for CrusadersBedrock.</span></a>
+<a class="panel" href="https://youtube.com/@crusaderly" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><strong>YouTube</strong><br><span style="color:var(--text-dim)">Videos and showcases under @crusaderly.</span></a>
 <a class="panel" href="https://itsthemodder.github.io/CB-Costomiser/" target="_blank" rel="noopener noreferrer" style="text-decoration:none"><strong>CB Customiser</strong><br><span style="color:var(--text-dim)">Turn individual features on or off.</span></a>
 </div>
 </div></div>
@@ -466,13 +509,14 @@ var HOBBIES=[
 ["Experimental Projects","items/experience_bottle.png","Anything without a clear category yet.","Creative"]
 ];
 var PROJECTS=[
-{id:"P-001",g:"\u2736",art:"painting/sunflowers.png",w:"95%",name:"CrusadersBedrock",desc:"The main Bedrock project. Expands survival gameplay with a five season system, grappling hooks, custom redstone blocks, a soul chest death protection system, custom pets, a flying drone, and a full Script API driven gameplay layer, while staying close to Minecraft's core feel.",tags:["Survival+","Vanilla+","Multiplayer","Script API"],url:"https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrock"},
-{id:"P-002",g:"\u25C8",art:"painting/passage.png",w:"80%",name:"Dimensional Doors!",desc:"A custom Skyblock dimension addon. A Trial Key and a wooden door open a portal into a self contained progression space with resource islands, ore islands, and a copper door return system.",tags:["Custom Dimensions","Skyblock","Survival","Multiplayer"],url:"https://www.curseforge.com/minecraft-bedrock/addons/dimensional-doors"},
-{id:"P-003",g:"\u2316",art:"painting/endboss.png",w:"70%",name:"PvP Manhunt Bot (MCPE)",desc:"An experimental AI hunter that travels across dimensions, navigates and recalculates its path around obstacles, and fights using its own combat logic. A study in autonomous, emergent Bedrock behavior.",tags:["AI","Pathfinding","Combat","Automation"],url:"https://www.curseforge.com/minecraft-bedrock/addons/pvp-manhunt-bot-mcpe"},
-{id:"P-004",g:"\u2726",art:"painting/prairie_ride.png",w:"85%",name:"CrusadersBedrockLite",desc:"A lighter version of the Crusader gameplay concept. Keeps the five season system, grappling hooks, and casino style systems, without the full feature set of the main project.",tags:["Lightweight","Survival+","Script API","Multiplayer"],url:"https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrocklite"},
-{id:"P-005",g:"\u2697",art:"painting/pond.png",w:"75%",name:"Custom Potions Maker",desc:"Lets players build fully customizable potions, combining effects, amplifiers, and durations through a Script UI system, for brews built around combat, mining, exploration, or parkour.",tags:["Custom Brewing","Script API","Script UI"],url:"https://www.curseforge.com/minecraft-bedrock/addons/crusaderscustompotions"},
-{id:"P-006",g:"\u2727",art:"painting/tides.png",w:"90%",name:"Crusaders Reduced Particle Effect",desc:"A resource pack that replaces large vanilla spell particles with smaller sparkler style ones. Animated and colour fading, built for cleaner visibility in PvP and survival.",tags:["Resource Pack","Visual Optimization","PvP"],url:"https://www.curseforge.com/minecraft-bedrock/texture-packs/crusadersreducedeffect-sparkler-style-spells"},
-{id:"P-007",g:"\u2B21",art:"painting/unpacked.png",w:"65%",name:"Crusaders Toolbox",desc:"A scripting utility for procedural shapes and mass entity manipulation. Summons and arranges entities into spheres, cubes, and torus formations for building complex structures through code.",tags:["Procedural Generation","Entity Scripting","Utility"],url:"https://www.curseforge.com/minecraft-bedrock/scripts/crusaderstoolbox"}
+{n:1,s:"Bedrock",ico:"items/diamond_sword.png",art:"painting/sunflowers.png",w:"95%",name:"CrusadersBedrock",desc:"The main Bedrock project. Expands survival gameplay with a five season system, grappling hooks, custom redstone blocks, a soul chest death protection system, custom pets, a flying drone, and a full Script API driven gameplay layer, while staying close to Minecraft's core feel.",tags:["Survival+","Vanilla+","Multiplayer","Script API"],url:"https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrock"},
+{n:2,s:"Doors",ico:"items/door_wood.png",art:"painting/passage.png",w:"80%",name:"Dimensional Doors!",desc:"A custom Skyblock dimension addon. A Trial Key and a wooden door open a portal into a self contained progression space with resource islands, ore islands, and a copper door return system.",tags:["Custom Dimensions","Skyblock","Survival","Multiplayer"],url:"https://www.curseforge.com/minecraft-bedrock/addons/dimensional-doors"},
+{n:3,s:"Manhunt",ico:"items/iron_sword.png",art:"painting/endboss.png",w:"70%",name:"PvP Manhunt Bot (MCPE)",desc:"An experimental AI hunter that travels across dimensions, navigates and recalculates its path around obstacles, and fights using its own combat logic. A study in autonomous, emergent Bedrock behavior.",tags:["AI","Pathfinding","Combat","Automation"],url:"https://www.curseforge.com/minecraft-bedrock/addons/pvp-manhunt-bot-mcpe"},
+{n:4,s:"Lite",ico:"items/feather.png",art:"painting/prairie_ride.png",w:"85%",name:"CrusadersBedrockLite",desc:"A lighter version of the Crusader gameplay concept. Keeps the five season system, grappling hooks, and casino style systems, without the full feature set of the main project.",tags:["Lightweight","Survival+","Script API","Multiplayer"],url:"https://www.curseforge.com/minecraft-bedrock/addons/crusadersbedrocklite"},
+{n:5,s:"Potions",ico:"items/potion_bottle_drinkable.png",art:"painting/pond.png",w:"75%",name:"Custom Potions Maker",desc:"Lets players build fully customizable potions, combining effects, amplifiers, and durations through a Script UI system, for brews built around combat, mining, exploration, or parkour.",tags:["Custom Brewing","Script API","Script UI"],url:"https://www.curseforge.com/minecraft-bedrock/addons/crusaderscustompotions"},
+{n:6,s:"Particles",ico:"items/glowstone_dust.png",art:"painting/tides.png",w:"90%",name:"Crusaders Reduced Particle Effect",desc:"A resource pack that replaces large vanilla spell particles with smaller sparkler style ones. Animated and colour fading, built for cleaner visibility in PvP and survival.",tags:["Resource Pack","Visual Optimization","PvP"],url:"https://www.curseforge.com/minecraft-bedrock/texture-packs/crusadersreducedeffect-sparkler-style-spells"},
+{n:7,s:"Toolbox",ico:"items/iron_pickaxe.png",art:"painting/unpacked.png",w:"65%",name:"Crusaders Toolbox",desc:"A scripting utility for procedural shapes and mass entity manipulation. Summons and arranges entities into spheres, cubes, and torus formations for building complex structures through code.",tags:["Procedural Generation","Entity Scripting","Utility"],url:"https://www.curseforge.com/minecraft-bedrock/scripts/crusaderstoolbox"},
+{n:8,s:"Baritone",ico:"items/ender_eye.png",st:"NEW",art:"painting/cavebird.png",w:"55%",name:"CrusadersBaritone",desc:"An AI speedrunner for Bedrock. Armed with a wooden sword, it plays Minecraft on its own: wood, stone, iron tools, diamonds and lava, a Nether portal, Ender Pearls and Blaze Rods, Eyes of Ender, the Stronghold, and finally the Ender Dragon. Hit any mob with an emerald to show its health.",tags:["AI","Speedrun","Automation","Utility"],url:"https://www.curseforge.com/minecraft-bedrock/scripts/ai-speedrunner-bedrock"}
 ];
 var FEATS=[
 ["items/clock_item.png","Seasons","<p>The world changes every 5 Minecraft days.</p><ul><li>Spring: normal gameplay</li><li>Summer: Speed III, Jump Boost, hunger</li><li>Monsoon: Haste II, Weakness, thunderstorms</li><li>Autumn: Strength II, Slowness</li><li>Winter: Slowness II, Saturation III</li></ul>"],
@@ -485,10 +529,10 @@ var FEATS=[
 ["items/apple_golden.png","Special Events","<ul><li>Day 67: chance of Golden Apple rain and a rare Notch's Apple</li><li>Notch's Match: a rare daily event with Phantom riders that may bring loot</li></ul>"],
 ["items/wheat.png","Overhauled Trades","<p>Fletchers, Shepherds, Stone Masons, Clerics and Wandering Traders have expanded trades.</p>"],
 ["items/redstone_dust.png","Custom Redstone","<ul><li>Impulse Block: pushes nearby entities away, redstone strength sets the force</li><li>Inverse Impulse Block: pulls entities from up to 20 blocks away, players are ignored</li><li>Block Placer: 15 modes. 1 to 6 place blocks, 7 to 12 break blocks, 13 special conversion, 14 load a saved block, 15 save and remove a block</li><li>Entity Teleporter: teleports entities upward, strength sets the distance</li></ul>"],
-["items/netherite_hoe.png","Extra Features","<ul><li>Pick up mobs with a Golden Hoe</li><li>Pick up blocks with a Netherite Hoe, keeping their data</li><li>Bombs from items or boats named \"bomb\", detonated with a Compass or Stone Button</li><li>Built-in WorldEdit for admins</li><li>Quick equipment management</li></ul>"],
+["items/netherite_hoe.png","Extra Features","<ul><li>Pick up mobs with a Golden Hoe</li><li>Pick up blocks with a Netherite Hoe, keeping their data</li><li>Bombs from items or boats named \"bomb\", detonated with a Compass or Stone Button</li><li>WorldEdit included for admins</li><li>Quick equipment management</li></ul>"],
 ["items/bone.png","Pets","<ul><li>Bone Drone: tame with Bones. Flies and hovers, can be ridden, supports different ammunition, attacks monsters automatically</li><li>Calcite Turret: tame with Calcite. Follows you, can be set to stay put, attacks monsters automatically</li></ul>"],
 ["items/ender_pearl.png","Abilities and Items","<ul><li>Crusader Shell: shoot it from a bow and sneak with a Shell in your offhand to teleport to the arrow</li><li>Teleport Book: teleports you and nearby entities to the nearest player</li><li>Teleporter Book: teleports you to the farthest player on the server</li></ul>"],
-["items/book_normal.png","In-game Guide","<p>An in-game menu to explore Features, Custom Blocks, Pets, Abilities, Items, Changelog and Experimental features.</p>"],
+["items/book_normal.png","Guide Menu","<p>A menu inside the game to explore Features, Custom Blocks, Pets, Abilities, Items, Changelog and Experimental features.</p>"],
 ["items/compass_item.png","Experimental","<p>Experimental utilities such as Teleport Utility and Texture Checker.</p>"]
 ];
 var PAINTS="backyard baroque bouquet cavebird changing cotan dennis endboss fern finding humble kz lowmist meditative orb owlemons passage pond prairie_ride sunflowers tides unpacked".split(" ");
@@ -515,14 +559,14 @@ $("#igroups").innerHTML=ig;
 /* projects */
 function card(p){
   var c=document.createElement("article");c.className="card";c.style.setProperty("--w",p.w);
-  c.innerHTML='<div class="art" style="background-image:url('+p.art+')"><b>'+p.id+' / ACTIVE</b><em>'+p.g+'</em></div><div class="body"><h3>'+esc(p.name)+'</h3><p>'+esc(p.desc)+'</p><div class="tags">'+p.tags.map(function(t){return "<span>"+esc(t)+"</span>"}).join("")+'</div><div class="pbar" title="Project completeness (illustrative)"><i></i></div><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+p.url+'">View Project</a></div>';
+  c.innerHTML='<div class="art" style="background-image:url('+p.art+')"><b>#'+p.n+' / '+(p.st||'ACTIVE')+'</b></div><div class="body"><h3>'+esc(p.name)+'</h3><p>'+esc(p.desc)+'</p><div class="tags">'+p.tags.map(function(t){return "<span>"+esc(t)+"</span>"}).join("")+'</div><div class="pbar" title="Project completeness (illustrative)"><i></i></div><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+p.url+'">View Project</a></div>';
   return c;
 }
 var track=$("#track");PROJECTS.forEach(function(p){track.appendChild(card(p))});
 var cards=$$(".card",track),rd=$("#rd");
 function step(d){var w=cards[0].offsetWidth+16;track.scrollBy({left:d*w,behavior:reduce?"auto":"smooth"})}
 $("#prev").onclick=function(){step(-1)};$("#next").onclick=function(){step(1)};
-track.addEventListener("scroll",function(){var w=cards[0].offsetWidth+16,i=Math.min(cards.length-1,Math.round(track.scrollLeft/w));rd.textContent=("0"+(i+1)).slice(-2)+" / 0"+cards.length},{passive:true});
+track.addEventListener("scroll",function(){var w=cards[0].offsetWidth+16,i=Math.min(cards.length-1,Math.round(track.scrollLeft/w));rd.textContent=("0"+(i+1)).slice(-2)+" / "+("0"+cards.length).slice(-2)},{passive:true});
 var tagset=["All"];PROJECTS.forEach(function(p){p.tags.forEach(function(t){if(tagset.indexOf(t)<0)tagset.push(t)})});
 var fl=$("#filters"),pg=$("#pgrid");
 function renderGrid(tag){pg.innerHTML="";PROJECTS.filter(function(p){return tag==="All"||p.tags.indexOf(tag)>=0}).forEach(function(p){var c=card(p);pg.appendChild(c);setTimeout(function(){c.classList.add("in")},30)});$$("button",fl).forEach(function(b){b.classList.toggle("on",b.textContent===tag)})}
@@ -531,6 +575,48 @@ renderGrid("All");
 /* crusadersbedrock accordions */
 $("#acc").innerHTML=FEATS.map(function(f){return '<details class="acc"><summary><img src="'+f[0]+'" alt="">'+f[1]+'</summary><div class="ab">'+f[2]+'</div></details>'}).join("");
 $$("details.acc").forEach(function(d){d.addEventListener("toggle",function(){if(d.open)play("orb",.2)})});
+/* rotating wheel, ported from the CrusadersBedrock page */
+function makeWheel(host,items,opt){
+  host.classList.add("cbx-wheel-wrap");
+  host.innerHTML='<div class="cbx-wheel" tabindex="0" role="group" aria-label="'+opt.label+'"><span class="cbx-pointer"></span><div class="cbx-ring"><svg viewBox="-100 -100 200 200" aria-hidden="true"></svg></div><div class="cbx-hub" aria-hidden="true"></div><button type="button" class="cbx-spinbtn" aria-pressed="false" aria-label="Pause wheel rotation"><svg viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor"><g class="pa"><rect x="3" y="2" width="3" height="12"/><rect x="10" y="2" width="3" height="12"/></g><path class="pl" d="M4 2h3v2h2v2h2v4H9v2H7v2H4z"/></svg></button></div><div class="cbx-detail" aria-live="polite"></div>';
+  var wheel=$(".cbx-wheel",host),ring=$(".cbx-ring",host),svg=$("svg",ring),hub=$(".cbx-hub",host),detail=$(".cbx-detail",host),pbtn=$(".cbx-spinbtn",host);
+  var N=items.length,STEP=360/N,NS="http://www.w3.org/2000/svg",secs=[],nodes=[],idx=0,rot=0,drifting=false,userPaused=false,holdTimer=null,raf=null,lastT=0,ramp=0,onScreen=true,hov=-1;
+  function pt(r,a){var t=a*Math.PI/180;return (r*Math.sin(t)).toFixed(2)+","+(-r*Math.cos(t)).toFixed(2)}
+  function sector(a0,a1,ro,ri){return "M"+pt(ro,a0)+" A"+ro+" "+ro+" 0 0 1 "+pt(ro,a1)+" L"+pt(ri,a1)+" A"+ri+" "+ri+" 0 0 0 "+pt(ri,a0)+" Z"}
+  items.forEach(function(it,i){
+    var p=document.createElementNS(NS,"path");p.setAttribute("d",sector(i*STEP-STEP/2+1,i*STEP+STEP/2-1,98,52));p.setAttribute("class","cbx-sec"+(i%2?" alt":""));svg.appendChild(p);secs.push(p);
+    var n=document.createElement("div");n.className="cbx-node";var th=i*STEP*Math.PI/180;n.style.left=(50+37.5*Math.sin(th))+"%";n.style.top=(50-37.5*Math.cos(th))+"%";n.innerHTML='<img src="'+it.icon+'" alt="">';ring.appendChild(n);nodes.push(n);
+  });
+  function paint(){
+    var it=items[idx];
+    detail.innerHTML='<span class="tg">'+esc(it.tag)+'</span><h3>'+esc(it.name)+'</h3>'+(it.html?'<div class="ab">'+it.html+'</div>':'<p>'+esc(it.desc)+'</p>')+'<div class="meta">'+(idx+1)+' of '+N+'. Tap the wheel, or use the arrows.</div><div class="row">'+(it.act||"")+'<button type="button" class="btn sm wp" aria-label="Previous">&lt;</button><button type="button" class="btn sm wn" aria-label="Next">&gt;</button></div><div class="cbx-hold" aria-hidden="true"><i></i></div>';
+    detail.classList.remove("swap");void detail.offsetWidth;detail.classList.add("swap");
+    $(".wp",detail).onclick=function(){select(idx-1)};$(".wn",detail).onclick=function(){select(idx+1)};
+  }
+  function select(i,silent){
+    i=((i%N)+N)%N;idx=i;var target=-i*STEP,delta=(((target-rot)%360)+540)%360-180;rot+=delta;ring.style.setProperty("--rot",rot);
+    secs.forEach(function(s,k){s.classList.toggle("sel",k===i)});nodes.forEach(function(n,k){n.classList.toggle("sel",k===i)});
+    hub.innerHTML='<img src="'+items[i].icon+'" alt=""><div class="nm">'+esc(items[i].short||items[i].name)+'</div>';hub.classList.remove("pop");void hub.offsetWidth;hub.classList.add("pop");
+    paint();if(!silent){hold();play("orb",.3)}
+  }
+  function sectorAt(e){var r=wheel.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);if(Math.hypot(dx,dy)<r.width*.23)return -1;var a=Math.atan2(dx,-dy)*180/Math.PI-rot;return ((Math.round(a/STEP)%N)+N)%N}
+  wheel.addEventListener("click",function(e){var i=sectorAt(e);select(i===-1?idx+1:i)});
+  wheel.addEventListener("pointermove",function(e){if(e.pointerType==="touch")return;var i=sectorAt(e);if(i===hov)return;if(hov>-1)secs[hov].classList.remove("hover");hov=i;if(hov>-1)secs[hov].classList.add("hover")});
+  wheel.addEventListener("pointerleave",function(){if(hov>-1)secs[hov].classList.remove("hover");hov=-1});
+  wheel.addEventListener("keydown",function(e){var k=e.key;if(k==="ArrowRight"||k==="ArrowDown"){e.preventDefault();select(idx+1)}else if(k==="ArrowLeft"||k==="ArrowUp"){e.preventDefault();select(idx-1)}});
+  function frame(t){raf=null;if(!drifting||!onScreen||document.hidden){lastT=0;return}var dt=lastT?Math.min(.1,(t-lastT)/1000):0;lastT=t;ramp=Math.min(1,ramp+dt/1.5);rot+=3.5*ramp*dt;ring.style.setProperty("--rot",rot.toFixed(3));raf=requestAnimationFrame(frame)}
+  function startDrift(){if(userPaused)return;drifting=true;ramp=0;lastT=0;wheel.classList.add("drifting");if(!raf)raf=requestAnimationFrame(frame)}
+  function stopDrift(){drifting=false;wheel.classList.remove("drifting");if(raf){cancelAnimationFrame(raf);raf=null}}
+  function hold(){stopDrift();clearTimeout(holdTimer);var it=items[idx],ms=Math.max(7000,4000+(it.desc||"").length*60),bar=$(".cbx-hold i",detail);if(bar&&bar.animate)bar.animate([{transform:"scaleX(1)"},{transform:"scaleX(0)"}],{duration:ms,easing:"linear",fill:"forwards"});holdTimer=setTimeout(startDrift,ms)}
+  new IntersectionObserver(function(es){onScreen=es[0].isIntersecting;if(onScreen&&drifting&&!raf)raf=requestAnimationFrame(frame)}).observe(wheel);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&drifting&&!raf){lastT=0;raf=requestAnimationFrame(frame)}});
+  pbtn.addEventListener("click",function(e){e.stopPropagation();userPaused=!userPaused;pbtn.setAttribute("aria-pressed",String(userPaused));pbtn.setAttribute("aria-label",userPaused?"Resume wheel rotation":"Pause wheel rotation");play("orb",.2);if(userPaused){clearTimeout(holdTimer);stopDrift()}else startDrift()});
+  select(0,true);startDrift();
+}
+var projItems=PROJECTS.map(function(p){return {icon:p.ico,short:p.s,name:p.name,tag:"#"+p.n+(p.st?" / "+p.st:""),desc:p.desc,act:'<a class="btn sm gold" target="_blank" rel="noopener noreferrer" href="'+p.url+'">View Project</a>'+(p.n===1?'<a class="btn sm" href="#/crusadersbedrock">Project page</a>':"")}});
+makeWheel($("#wheel-home"),projItems,{label:"Project wheel. Tap a slice to pick a project, or use the arrow keys."});
+makeWheel($("#wheel-proj"),projItems,{label:"Project wheel. Tap a slice to pick a project, or use the arrow keys."});
+makeWheel($("#wheel-feat"),FEATS.map(function(f){return {icon:f[0],name:f[1],tag:"Feature",desc:f[2].replace(/<[^>]+>/g," "),html:f[2]}}),{label:"CrusadersBedrock feature wheel. Tap a slice to pick a feature, or use the arrow keys."});
 /* gallery + lightbox */
 var LB=[],lbi=0,lb=$("#lb");
 function gal(el,items,cls){items.forEach(function(it){var b=document.createElement("button");b.type="button";b.innerHTML='<img loading="lazy" decoding="async" src="'+it.src+'" alt="'+esc(it.cap)+'"><span>'+esc(it.cap)+'</span>';b.onclick=function(){openLb(items,items.indexOf(it))};el.appendChild(b)})}
